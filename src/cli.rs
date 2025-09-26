@@ -1,5 +1,10 @@
 use std::env;
 
+#[cfg(unix)]
+const OPT_PREFIX: char = '-';
+#[cfg(windows)]
+const OPT_PREFIX: char = '/';
+
 pub enum OptTyp {
     Num,
     FNum,
@@ -92,9 +97,9 @@ impl CLI {
         let mut args = env::args();
         args.next(); // swallow first
         while let Some(arg) = args.next() {
-            if arg.starts_with('-') {
+            if arg.starts_with(OPT_PREFIX) {
                 // TODO eat extra -
-                let sarg = arg.strip_prefix('-').unwrap();
+                let sarg = arg.strip_prefix(OPT_PREFIX).unwrap();
                 for opt in &mut self.opts {
                     if opt.nme == sarg {
                         match opt.t {
