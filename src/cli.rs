@@ -62,7 +62,7 @@ impl CLI {
             descr += &self.descr.as_ref().unwrap()
         }
         for opt in &self.opts {
-            descr += &format!("\n{}", opt.nme);
+            descr += &format!("\n{OPT_PREFIX}{}", opt.nme);
             if opt.descr.is_some() {
                 descr += &format!("\t{}", opt.descr.as_ref().unwrap())
             }
