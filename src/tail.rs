@@ -31,13 +31,17 @@ pub fn read_last_n_lines<P: AsRef<Path>>(path: P, n: usize) -> Result<Vec<String
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut cli = CLI::new();
-    cli.opt("n", OptTyp::Num).opt("v", OptTyp::None);
+    cli.opt("n", OptTyp::Num).description("Number lines")
+        .opt("v", OptTyp::None).description("Version").opt("h", OptTyp::None);
     let lns = match cli.get_opt("n") {
         Some(OptVal::Num(n)) => *n as usize,
         _ => 15usize
     };
     if cli.get_opt("v") == Some(&OptVal::Empty) {
         println!("\nVersion {VERSION}")
+    }
+    if cli.get_opt("h") == Some(&OptVal::Empty) {
+        return Ok(println!("\n{}", cli.get_description().unwrap()))
     }
     Ok(if cli.args().len() > 0 {
         match read_last_n_lines(&cli.args()[0], lns) { // Requesting more lines than available

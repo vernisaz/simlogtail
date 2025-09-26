@@ -18,10 +18,12 @@ pub struct CliOpt {
     t: OptTyp,
     v: Option<OptVal>,
     nme: String,
+    descr: Option<String>,
 }
 pub struct CLI {
     args: Vec<String>,
     opts: Vec<CliOpt>,
+    descr: Option<String>,
     unprocessed: bool
 }
 impl CLI {
@@ -29,13 +31,42 @@ impl CLI {
         CLI {
             args: vec![],
             opts: vec![],
+            descr: None,
             unprocessed: true
         }
     }
     
     pub fn opt(&mut self, name: &str, t: OptTyp) -> &mut Self {
-        self.opts.push(CliOpt{ t:t, nme: name.to_string(), v:None});
+        self.opts.push(CliOpt{ t:t, nme: name.to_string(), descr:None, v:None});
         self
+    }
+    
+    pub fn description(&mut self, descr: &str) -> &mut Self {
+        if self.opts.is_empty() {
+            self.descr = Some(descr.to_string())
+        } else {
+            let indx = self.opts.len() - 1;
+            self.opts[indx].descr = Some(descr.to_string())
+        }
+        self
+    }
+    
+    pub fn get_description(&self) -> Option<String> {
+        let mut descr = String::new();
+        if self.descr.is_some() {
+            descr += &self.descr.as_ref().unwrap()
+        }
+        for opt in &self.opts {
+            descr += &format!("\n{}", opt.nme);
+            if opt.descr.is_some() {
+                descr += &format!("\t{}", opt.descr.as_ref().unwrap())
+            }
+        }
+        if descr.is_empty() {
+            None
+        } else {
+            Some(descr)
+        }
     }
     
     pub fn get_opt(&mut self, name: &str) -> Option<&OptVal> {
