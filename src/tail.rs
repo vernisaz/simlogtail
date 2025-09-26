@@ -20,27 +20,23 @@ const VERSION: &str = env!("VERSION");
 /// or an `io::Error` if the file cannot be read.
 pub fn read_last_n_lines<P: AsRef<Path>>(path: P, n: usize) -> Result<Vec<String>, std::io::Error> {
     let contents = fs::read_to_string(path)?;
-    let lines: Vec<&str> = contents.lines().collect();
+    let lines: Vec<_> = contents.lines().collect();
 
     let start_index = lines.len().saturating_sub(n);
-    let last_n_lines: Vec<String> = lines[start_index..]
+    Ok( lines[start_index..]
         .iter()
         .map(|&s| s.to_string())
-        .collect();
-
-    Ok(last_n_lines)
+        .collect())
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut cli = CLI::new();
-    cli.opt("n", OptTyp::Num);
-    cli.opt("v", OptTyp::None);
-    let lns = cli.get_opt("n");
-    let lns = match lns {
+    cli.opt("n", OptTyp::Num).opt("v", OptTyp::None);
+    let lns = match cli.get_opt("n") {
         Some(OptVal::Num(n)) => *n as usize,
         _ => 15usize
     };
-    if cli.get_opt("v") == Some(&OptVal::Unmatch) {
+    if cli.get_opt("v") == Some(&OptVal::Empty) {
         println!("\nVersion {VERSION}")
     }
     Ok(if cli.args().len() > 0 {

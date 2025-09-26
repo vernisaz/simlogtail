@@ -11,16 +11,17 @@ pub enum OptVal {
     Num(i64),
     FNum(f64),
     Str(String),
+    Empty,
     Unmatch
 }
 pub struct CliOpt {
     t: OptTyp,
     v: Option<OptVal>,
-    nme: String, //&'a str
+    nme: String,
 }
 pub struct CLI {
     args: Vec<String>,
-    opts: Vec<CliOpt>,// <'a>>,
+    opts: Vec<CliOpt>,
     unprocessed: bool
 }
 impl CLI {
@@ -32,7 +33,7 @@ impl CLI {
         }
     }
     
-    pub fn opt(&mut self, name: &str, t: OptTyp) -> &Self {
+    pub fn opt(&mut self, name: &str, t: OptTyp) -> &mut Self {
         self.opts.push(CliOpt{ t:t, nme: name.to_string(), v:None});
         self
     }
@@ -77,8 +78,20 @@ impl CLI {
                                     _ => ()
                                 }
                             },
-                            OptTyp::None => opt.v = Some(OptVal::Unmatch),
-                            OptTyp::FNum | OptTyp::Str => todo!()
+                            OptTyp::None => opt.v = Some(OptVal::Empty),
+                            OptTyp::FNum => match args.next() {
+                                    Some(val) => {
+                                        match val.parse::<f64>() {
+                                            Ok (num) => opt.v = Some(OptVal::FNum(num)),
+                                            _ => opt.v = Some(OptVal::Unmatch)
+                                        }
+                                    }
+                                    _ => ()
+                                }
+                            OptTyp::Str => match args.next() {
+                                Some(str) => opt.v = Some(OptVal::Str(str)),
+                                _ => ()
+                            }
                         }
                     }
                 }
