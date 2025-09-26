@@ -3,6 +3,10 @@ use std::env;
 use std::fs;
 use std::path::Path;
 extern crate simtime;
+mod cli;
+use crate::cli::{CLI,OptTyp,OptVal};
+
+const VERSION: &str = env!("VERSION");
 /// Reads a file and returns the last `n` lines as a vector of strings.
 ///
 /// # Arguments
@@ -26,13 +30,23 @@ pub fn read_last_n_lines<P: AsRef<Path>>(path: P, n: usize) -> Result<Vec<String
 
     Ok(last_n_lines)
 }
+
 fn main() -> Result<(), Box<dyn Error>> {
-    let mut args = env::args();
-    args.next();
-    args.next().and_then(|file_path:String| 
-       Some( match read_last_n_lines(&file_path, 15) { // Requesting more lines than available
+    let mut cli = CLI::new();
+    cli.opt("n", OptTyp::Num);
+    cli.opt("v", OptTyp::None);
+    let lns = cli.get_opt("n");
+    let lns = match lns {
+        Some(OptVal::Num(n)) => *n as usize,
+        _ => 15usize
+    };
+    if cli.get_opt("v") == Some(&OptVal::Unmatch) {
+        println!("\nVersion {VERSION}")
+    }
+    Ok(if cli.args().len() > 0 {
+        match read_last_n_lines(&cli.args()[0], lns) { // Requesting more lines than available
                 Ok(lines) => {
-                    println!("\nLast 15 lines (or fewer if not available) of {}:", file_path);
+                    println!("\nLast {lns} lines (or fewer if not available) of {}:", &cli.args()[0]);
                     let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
                     for line in lines {
                         match line.split_once('[').
@@ -52,6 +66,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     eprintln!("Error reading file: {}", e);
                 }
             }
-        )
-    ).ok_or("no input file".into())
+        } else {
+            eprintln!("Specify file path")
+    })
 }
