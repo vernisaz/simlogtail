@@ -1,14 +1,17 @@
 use std::env;
+use std::collections::HashSet;
 
 #[cfg(unix)]
 const OPT_PREFIX: char = '-';
 #[cfg(windows)]
 const OPT_PREFIX: char = '/';
 
+#[derive(PartialEq)]
 pub enum OptTyp {
     Num,
     FNum,
     Str,
+    InStr,
     None
 }
 #[derive(PartialEq, Debug)]
@@ -16,6 +19,7 @@ pub enum OptVal {
     Num(i64),
     FNum(f64),
     Str(String),
+    Arr(HashSet<(String,String)>),
     Empty,
     Unmatch
 }
@@ -128,7 +132,10 @@ impl CLI {
                                 Some(str) => opt.v = Some(OptVal::Str(str)),
                                 _ => ()
                             }
+                            OptTyp::InStr => ()
                         }
+                    } else if opt.t == OptTyp::InStr && sarg.starts_with(&opt.nme) {
+                        
                     }
                 }
             } else {
