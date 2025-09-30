@@ -31,7 +31,7 @@ pub fn read_last_n_lines<P: AsRef<Path>>(path: P, n: usize) -> Result<Vec<String
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut cli = CLI::new();
-    cli.description("Where,").opt("n", OptTyp::Num).description("Number lines")
+    cli.description("Where opts:").opt("n", OptTyp::Num).description("Number lines")
         .opt("v", OptTyp::None).description("Version").opt("h", OptTyp::None);
     let lns = match cli.get_opt("n") {
         Some(OptVal::Num(n)) => *n as usize,
