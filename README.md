@@ -1,9 +1,9 @@
 # Simple tail viewer for log files
 
 ## Purpose
-I work on different systems where `tail` like command can be not availble. Another reson 
+I work on different systems where `tail` like command can be not availble. Another reason 
 is
-my log file entries contain a timestamp in millisecond since epoch. The program converts
+my log file entries contain a timestamp in milliseconds since the epoch. The program converts
 the information in a human readable format.
 
 ## Command line arguments
