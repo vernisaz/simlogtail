@@ -31,7 +31,7 @@ pub fn read_last_n_lines<P: AsRef<Path>>(path: P, n: usize) -> Result<Vec<String
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut cli = CLI::new();
-    cli.opt("n", OptTyp::Num).description("Number lines")
+    cli.description("Where,").opt("n", OptTyp::Num).description("Number lines")
         .opt("v", OptTyp::None).description("Version").opt("h", OptTyp::None);
     let lns = match cli.get_opt("n") {
         Some(OptVal::Num(n)) => *n as usize,
@@ -40,7 +40,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if cli.get_opt("v") == Some(&OptVal::Empty) {
         return Ok(println!("\nVersion {VERSION}"))
     } else if cli.get_opt("h") == Some(&OptVal::Empty)  || cli.args().len()  != 1 {
-        return Ok(println!("simtail [opts] <file path>\n{}", cli.get_description().unwrap()))
+        return Ok(println!("Usage: simtail [opts] <file path>\n{}", cli.get_description().unwrap()))
     }
     Ok( match read_last_n_lines(&cli.args()[0], lns) { // Requesting more lines than available
                 Ok(lines) => {
