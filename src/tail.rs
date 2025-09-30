@@ -38,13 +38,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         _ => 15usize
     };
     if cli.get_opt("v") == Some(&OptVal::Empty) {
-        println!("\nVersion {VERSION}")
+        return Ok(println!("\nVersion {VERSION}"))
+    } else if cli.get_opt("h") == Some(&OptVal::Empty)  || cli.args().len()  != 1 {
+        return Ok(println!("simtail [opts] <file path>\n{}", cli.get_description().unwrap()))
     }
-    if cli.get_opt("h") == Some(&OptVal::Empty) {
-        return Ok(println!("\n{}", cli.get_description().unwrap()))
-    }
-    Ok(if cli.args().len() > 0 {
-        match read_last_n_lines(&cli.args()[0], lns) { // Requesting more lines than available
+    Ok( match read_last_n_lines(&cli.args()[0], lns) { // Requesting more lines than available
                 Ok(lines) => {
                     println!("\nLast {lns} lines (or fewer if not available) of {}:", &cli.args()[0]);
                     let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
@@ -65,8 +63,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 Err(e) => {
                     eprintln!("Error reading file: {}", e);
                 }
-            }
-        } else {
-            eprintln!("Specify file path")
-    })
+        }
+    )
 }
