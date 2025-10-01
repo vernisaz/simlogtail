@@ -34,7 +34,7 @@ fn test_cli(cli: &mut CLI) {
     let d_o = cli.get_opt("D");
     if let Some(OptVal::Arr(d_o)) = d_o {
         for (i,d) in d_o.into_iter().enumerate() {
-            eprintln!("opt[{i}] {d:?}");
+            eprintln!("opt[{i}] {}={}",d.0, d.1);
         }
     }
 }
@@ -75,7 +75,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
                 Err(e) => {
-                    eprintln!("Error reading file: {}", e);
+                    eprintln!("Error reading file {} : {}", cli.args()[0], e);
                 }
         }
     )
