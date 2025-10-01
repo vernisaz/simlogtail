@@ -34,13 +34,13 @@ tail_of(&cli.args()[0]);
 ```
 
 If you have arguments in a form like - *-Xname=value*, then you can process them using the code as
-```
+```rust
 cli.opt("D", OptTyp::InStr).description("Definition as name=value");
 // and then read its appearance in the command line
 let d_o = cli.get_opt("D");
 if let Some(OptVal::Arr(d_o)) = d_o {
     for (i,d) in d_o.into_iter().enumerate() {
-        eprintln!("opt[{i}] {d:?}");
+        println!("opt[{i}] {d:?}");
     }
 }
 ```
