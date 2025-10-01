@@ -10,7 +10,7 @@ the information in a human readable format.
 Surprisingly, but AI doesn't give any simple and powerful cammand line arguments processor.
 The list of `clap`, `pico-args`, `lexopt`, `args`, and  `docopt` looks ridiculous.
 
-Not a big deal, the simple tail uses own arguments parsing module. 
+Not a big deal, the simple tail uses an own arguments parsing module. 
 
 Define the arguments first,
 ```Rust
@@ -31,6 +31,18 @@ if cli.get_opt("v") == Some(&OptVal::Empty) {
     return Ok(println!("simtail [opts] <file path>\n{}", cli.get_description().unwrap()))
 }
 tail_of(&cli.args()[0]);
+```
+
+If you have arguments in a form like - *-Xname=value*, then you can process them using the code as
+```
+cli.opt("D", OptTyp::InStr).description("Definition as name=value");
+// and then read its appearance in the command line
+let d_o = cli.get_opt("D");
+if let Some(OptVal::Arr(d_o)) = d_o {
+    for (i,d) in d_o.into_iter().enumerate() {
+        eprintln!("opt[{i}] {d:?}");
+    }
+}
 ```
 
 ## How to build

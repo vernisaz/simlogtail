@@ -32,7 +32,11 @@ pub fn read_last_n_lines<P: AsRef<Path>>(path: P, n: usize) -> Result<Vec<String
 #[cfg(test)]
 fn test_cli(cli: &mut CLI) {
     let d_o = cli.get_opt("D");
-      eprintln!("opt {d_o:?}"); 
+    if let Some(OptVal::Arr(d_o)) = d_o {
+        for (i,d) in d_o.into_iter().enumerate() {
+            eprintln!("opt[{i}] {d:?}");
+        }
+    }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
