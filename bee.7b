@@ -7,4 +7,15 @@ comp opts=[]
 version=1.01-dev
 set_env(VERSION,version)
 
+test file=${main}
+target test :.:Run test {
+    dependency {
+        target(build test)
+    }
+    dependency {true}
+    assign(test,.${~/~}test${t_ext})
+    exec test (-v,-Dhelp=me, -Dno=i'am)
+}
+
+include(..${~/~}simscript${~/~}comm-test.7b)
 include(common);
