@@ -135,28 +135,22 @@ impl CLI {
                             OptTyp::InStr => ()
                         }
                     } else if opt.t == OptTyp::InStr && sarg.starts_with(&opt.nme) {
-                        //let &(mut set);
                         if opt.v.is_none() {
                            opt.v = Some(OptVal::Arr(HashSet::new()))
                         } 
-                        
-                        match &opt.v {
-                            Some(OptVal::Arr(set)) => {
-                                let mut set = set.clone();
+                        match &mut opt.v {
+                            &mut Some(OptVal::Arr(ref mut set)) => {
                                 if let Some(pair) = sarg.strip_prefix(&opt.nme).unwrap().split_once('=') {
                                     set.insert((pair.0.to_string(), pair.1.to_string()));
                                 } else {
                                     set.insert((sarg.strip_prefix(&opt.nme).unwrap().to_string(), String::new()));
                                 }
-                                opt.v = Some(OptVal::Arr(set))
                             }
                             _ => {
                             // somehow to report data inconsistency
                                 opt.v = Some(OptVal::Arr(HashSet::new()))
                             }
                         }
-                      
-                        
                     }
                 }
             } else {
