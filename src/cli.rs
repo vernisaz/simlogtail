@@ -51,10 +51,9 @@ impl CLI {
     }
     
     pub fn description(&mut self, descr: &str) -> &mut Self {
-        if self.opts.is_empty() {
-            self.descr = Some(descr.to_string())
-        } else {
-            self.opts.last_mut().unwrap().descr = Some(descr.to_string())
+        match self.opts.last_mut() {
+            Some(element) => element.descr = Some(descr.to_string()),
+            _ => self.descr = Some(descr.to_string())
         }
         self
     }

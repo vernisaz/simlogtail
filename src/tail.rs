@@ -18,19 +18,30 @@ const VERSION: &str = env!("VERSION");
 ///
 /// A `Result` containing a `Vec<String>` of the last `n` lines,
 /// or an `io::Error` if the file cannot be read.
-pub fn read_last_n_lines<P: AsRef<Path>>(path: P, n: usize) -> Result<Vec<String>, std::io::Error> {
+pub fn read_last_n_lines<P: AsRef<Path>>(path: P, n: usize, skip_empty: bool) -> Result<Vec<String>, std::io::Error> {
     let contents = fs::read_to_string(path)?;
     let lines: Vec<_> = contents.lines().collect();
-
-    let start_index = lines.len().saturating_sub(n);
-    Ok( lines[start_index..]
-        .iter()
-        .map(|&s| s.to_string())
-        .collect())
+    if skip_empty {
+        let mut lines = lines.into_iter().rev();
+        let mut res = Vec::new();
+        while let Some(line) = lines.next() && res.len() < n {
+            if !line.trim().is_empty() {
+                res.push(line)
+            }
+        }
+        Ok(res.into_iter().rev().map(|s| s.to_string()).collect())
+    } else {
+        let start_index = lines.len().saturating_sub(n);
+        Ok( lines[start_index..]
+            .iter()
+            .map(|&s| s.to_string())
+            .collect())
+    }
 }
 
 #[cfg(test)]
 fn test_cli(cli: &mut CLI) {
+    cli.opt("D", OptTyp::InStr).description("A definition as name=value");
     let d_o = cli.get_opt("D");
     if let Some(OptVal::Arr(d_o)) = d_o {
         for (i,d) in d_o.into_iter().enumerate() {
@@ -43,7 +54,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut cli = CLI::new();
     cli.description("Where opts:").opt("n", OptTyp::Num).description("Number lines")
         .opt("v", OptTyp::None).description("Version").opt("h", OptTyp::None)
-        .opt("D", OptTyp::InStr).description("Definition as name=value");
+        .opt("c", OptTyp::None).description("Compact empty lines in the tail");
     let lns = match cli.get_opt("n") {
         Some(OptVal::Num(n)) => *n as usize,
         _ => 15usize
@@ -56,7 +67,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else if cli.get_opt("h") == Some(&OptVal::Empty)  || cli.args().len()  != 1 {
         return Ok(println!("Usage: simtail [opts] <file path>\n{}", cli.get_description().unwrap()))
     }
-    Ok( match read_last_n_lines(&cli.args()[0], lns) { // Requesting more lines than available
+    let compact = cli.get_opt("c") == Some(&OptVal::Empty);
+    Ok( match read_last_n_lines(&cli.args()[0], lns, compact) {
                 Ok(lines) => {
                     println!("\nLast {lns} lines (or fewer if not available) of {}:", &cli.args()[0]);
                     let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
