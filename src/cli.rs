@@ -54,8 +54,7 @@ impl CLI {
         if self.opts.is_empty() {
             self.descr = Some(descr.to_string())
         } else {
-            let indx = self.opts.len() - 1;
-            self.opts[indx].descr = Some(descr.to_string())
+            self.opts.last_mut().unwrap().descr = Some(descr.to_string())
         }
         self
     }
