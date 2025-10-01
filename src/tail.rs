@@ -32,11 +32,15 @@ pub fn read_last_n_lines<P: AsRef<Path>>(path: P, n: usize) -> Result<Vec<String
 fn main() -> Result<(), Box<dyn Error>> {
     let mut cli = CLI::new();
     cli.description("Where opts:").opt("n", OptTyp::Num).description("Number lines")
-        .opt("v", OptTyp::None).description("Version").opt("h", OptTyp::None);
+        .opt("v", OptTyp::None).description("Version").opt("h", OptTyp::None)
+        .opt("D", OptTyp::InStr);
     let lns = match cli.get_opt("n") {
         Some(OptVal::Num(n)) => *n as usize,
         _ => 15usize
     };
+    #[cfg(test)]
+    { let d_o = cli.get_opt("D");
+    eprintln!("opt {d_o:?}"); }
     if cli.get_opt("v") == Some(&OptVal::Empty) {
         return Ok(println!("\nVersion {VERSION}"))
     } else if cli.get_opt("h") == Some(&OptVal::Empty)  || cli.args().len()  != 1 {

@@ -102,7 +102,7 @@ impl CLI {
         args.next(); // swallow first
         while let Some(arg) = args.next() {
             if arg.starts_with(OPT_PREFIX) {
-                // TODO eat extra -
+                // TODO eat extra -'s
                 let sarg = arg.strip_prefix(OPT_PREFIX).unwrap();
                 for opt in &mut self.opts {
                     if opt.nme == sarg {
@@ -135,6 +135,27 @@ impl CLI {
                             OptTyp::InStr => ()
                         }
                     } else if opt.t == OptTyp::InStr && sarg.starts_with(&opt.nme) {
+                        //let &(mut set);
+                        if opt.v.is_none() {
+                           opt.v = Some(OptVal::Arr(HashSet::new()))
+                        } 
+                        
+                        match &opt.v {
+                            Some(OptVal::Arr(set)) => {
+                                let mut set = set.clone();
+                                if let Some(pair) = sarg.strip_prefix(&opt.nme).unwrap().split_once('=') {
+                                    set.insert((pair.0.to_string(), pair.1.to_string()));
+                                } else {
+                                    set.insert((sarg.strip_prefix(&opt.nme).unwrap().to_string(), String::new()));
+                                }
+                                opt.v = Some(OptVal::Arr(set))
+                            }
+                            _ => {
+                            // somehow to report data inconsistency
+                                opt.v = Some(OptVal::Arr(HashSet::new()))
+                            }
+                        }
+                      
                         
                     }
                 }
