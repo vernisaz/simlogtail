@@ -33,10 +33,10 @@ if cli.get_opt("v") == Some(&OptVal::Empty) {
 tail_of(&cli.args()[0]);
 ```
 
-If you have arguments in a form like - *-Xname=value*, then you can process them using the code as
+If you have arguments in the form like - *-Xname=value*, then you can define them using the code as
 ```rust
 cli.opt("D", OptTyp::InStr).description("Definition as name=value");
-// and then read its appearance in the command line
+// and then read their presence in the command line
 let d_o = cli.get_opt("D");
 if let Some(OptVal::Arr(d_o)) = d_o {
     for (i,d) in d_o.into_iter().enumerate() {
@@ -44,6 +44,14 @@ if let Some(OptVal::Arr(d_o)) = d_o {
     }
 }
 ```
+
+## Like the arguments processor?
+Until it isn't separated in a dedicated crate, you can simply include the processor in your project:
+```Rust
+mod cli;
+use crate::cli::{CLI,OptTyp,OptVal};
+```
+and then use it for parsing command arguments as shown above.
 
 ## How to build
 
