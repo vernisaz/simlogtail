@@ -15,8 +15,8 @@ Not a big deal, the simple tail uses an own arguments parsing module.
 Define the arguments first,
 ```Rust
 let mut cli = CLI::new();
-cli.opt("n", OptTyp::Num).description("Number lines")
-    .opt("v", OptTyp::None).description("Version").opt("h", OptTyp::None);
+cli.opt("n", OptTyp::Num)?.description("Number lines")
+    .opt("v", OptTyp::None)?.description("Version").opt("h", OptTyp::None)?;
 ```
 
 You can process the arguments now,
@@ -28,14 +28,14 @@ let lns = match cli.get_opt("n") {
 if cli.get_opt("v") == Some(&OptVal::Empty) {
     return Ok(println!("\nVersion {VERSION}"))
 } else if cli.get_opt("h") == Some(&OptVal::Empty)  || cli.args().len()  != 1 {
-    return Ok(println!("simtail [opts] <file path>\n{}", cli.get_description().unwrap()))
+    return Ok(println!("simtail [opts] <file path>\n{}", cli.get_description()?))
 }
 tail_of(&cli.args()[0]);
 ```
 
 If you have arguments in the form like - *-Xname=value*, then you can define them using the code as
 ```rust
-cli.opt("D", OptTyp::InStr).description("Definition as name=value");
+cli.opt("D", OptTyp::InStr)?.description("DA dfinition as name=value");
 // and then read their presence in the command line
 let d_o = cli.get_opt("D");
 if let Some(OptVal::Arr(d_o)) = d_o {

@@ -41,7 +41,11 @@ pub fn read_last_n_lines<P: AsRef<Path>>(path: P, n: usize, skip_empty: bool) ->
 
 #[cfg(test)]
 fn test_cli(cli: &mut CLI) {
-    cli.opt("D", OptTyp::InStr).unwrap().description("A definition as name=value");
+    match cli.opt("D", OptTyp::InStr) {
+        Ok(ref mut cli) => {cli.description("A definition as name=value");}
+        _ => ()
+    }
+     let _ = cli.opt("c", OptTyp::None).inspect_err(|e| eprintln!("{e}"));
     let d_o = cli.get_opt("D");
     if let Some(OptVal::Arr(d_o)) = d_o {
         for (i,d) in d_o.into_iter().enumerate() {
@@ -54,9 +58,9 @@ fn test_cli(cli: &mut CLI) {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut cli = CLI::new();
-    cli.description("Where opts:").opt("n", OptTyp::Num).unwrap().description("Number lines")
-        .opt("v", OptTyp::None).unwrap().description("Version").opt("h", OptTyp::None).unwrap()
-        .opt("c", OptTyp::None).unwrap().description("Compact empty lines in the tail");
+    cli.description("Where opts:").opt("n", OptTyp::Num)?.description("Number lines")
+        .opt("v", OptTyp::None)?.description("Version").opt("h", OptTyp::None)?
+        .opt("c", OptTyp::None)?.description("Compact empty lines in the tail");
     #[cfg(test)]
     test_cli(&mut cli);
     let lns = match cli.get_opt("n") {
