@@ -1,5 +1,4 @@
-use std::env;
-use std::collections::HashSet;
+use std::{env, collections::HashSet, fmt};
 
 #[cfg(unix)]
 const OPT_PREFIX: char = '-';
@@ -23,6 +22,16 @@ pub enum OptVal {
     Empty,
     Unmatch
 }
+#[derive(Debug)] 
+pub struct OptError {
+    cause: String,
+}
+impl fmt::Display for OptError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Err: {}", self.cause)
+    }
+}
+impl std::error::Error for OptError {}
 pub struct CliOpt {
     t: OptTyp,
     v: Option<OptVal>,
@@ -45,9 +54,14 @@ impl CLI {
         }
     }
     
-    pub fn opt(&mut self, name: &str, t: OptTyp) -> &mut Self {
+    pub fn opt(&mut self, name: &str, t: OptTyp) -> Result<&mut Self, OptError> {
+        for opt in &self.opts {
+            if opt.nme == name {
+                return Err(OptError{cause: format!("repeating option {name}")})
+            }
+        }
         self.opts.push(CliOpt{ t:t, nme: name.to_string(), descr:None, v:None});
-        self
+        Ok(self)
     }
     
     pub fn description(&mut self, descr: &str) -> &mut Self {
@@ -138,6 +152,7 @@ impl CLI {
                         } 
                         match &mut opt.v {
                             &mut Some(OptVal::Arr(ref mut set)) => {
+                            
                                 if let Some(pair) = sarg.strip_prefix(&opt.nme).unwrap().split_once('=') {
                                     set.insert((pair.0.to_string(), pair.1.to_string()));
                                 } else {
