@@ -19,7 +19,7 @@ cli.opt("n", OptTyp::Num)?.description("Number lines")
     .opt("v", OptTyp::None)?.description("Version").opt("h", OptTyp::None)?;
 ```
 
-You can process the arguments now,
+You can process the arguments after,
 ```rust
 let lns = match cli.get_opt("n") {
     Some(OptVal::Num(n)) => *n as usize,
@@ -30,13 +30,13 @@ if cli.get_opt("v") == Some(&OptVal::Empty) {
 } else if cli.get_opt("h") == Some(&OptVal::Empty)  || cli.args().len()  != 1 {
     return Ok(println!("simtail [opts] <file path>\n{}", cli.get_description()?))
 }
-tail_of(&cli.args()[0]);
+tail_of(&cli.args().first()?);
 ```
 
 If you have arguments in the form like - *-Xname=value*, then you can define them using the code as
 ```rust
-cli.opt("D", OptTyp::InStr)?.description("DA dfinition as name=value");
-// and then read their presence in the command line
+cli.opt("D", OptTyp::InStr)?.description("A dfinition as name=value");
+// and then read their presences in the command line
 let d_o = cli.get_opt("D");
 if let Some(OptVal::Arr(d_o)) = d_o {
     for (i,d) in d_o.into_iter().enumerate() {
