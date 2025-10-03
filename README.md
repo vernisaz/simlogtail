@@ -1,13 +1,13 @@
 # Simple tail viewer for log files
 
 ## Purpose
-I work on different systems where `tail` like command can be not availble. Another reason 
+I work on different systems where `tail` like command can be not available. Another reason 
 is
 my log file entries contain a timestamp in milliseconds since the epoch. The program converts
 the information in a human readable format.
 
 ## Command line arguments
-Surprisingly, but AI doesn't give any simple and powerful cammand line arguments processor.
+Surprisingly, but AI doesn't give any simple and powerful command line arguments processor.
 The list of `clap`, `pico-args`, `lexopt`, `args`, and  `docopt` looks ridiculous.
 
 Not a big deal, the simple tail uses an own arguments parsing module. 
@@ -33,9 +33,10 @@ if cli.get_opt("v") == Some(&OptVal::Empty) {
 tail_of(&cli.args().first()?);
 ```
 
-If you have arguments in the form like - *-Xname=value*, then you can define them using the code as
+If you have arguments in a form like - *-Xname=value*, then you can define them 
+using the code bellow
 ```rust
-cli.opt("D", OptTyp::InStr)?.description("A dfinition as name=value");
+cli.opt("D", OptTyp::InStr)?.description("A definition as name=value");
 // and then read their presences in the command line
 let d_o = cli.get_opt("D");
 if let Some(OptVal::Arr(d_o)) = d_o {
