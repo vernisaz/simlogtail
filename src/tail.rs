@@ -45,7 +45,7 @@ fn test_cli(cli: &mut CLI) {
         Ok(ref mut cli) => {cli.description("A definition as name=value");}
         _ => ()
     }
-     let _ = cli.opt("c", OptTyp::None).inspect_err(|e| eprintln!("{e}"));
+    let _ = cli.opt("c", OptTyp::None).inspect_err(|e| eprintln!("{e}"));
     let d_o = cli.get_opt("D");
     if let Some(OptVal::Arr(d_o)) = d_o {
         for (i,d) in d_o.into_iter().enumerate() {
@@ -54,6 +54,7 @@ fn test_cli(cli: &mut CLI) {
     } else {
         eprintln!("no def found")
     }
+    let _ = cli.opt("X", OptTyp::Str).inspect_err(|e| eprintln!("{e}"));
 }
 
 fn main() -> Result<(), Box<dyn Error>> {

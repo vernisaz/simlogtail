@@ -55,6 +55,9 @@ impl CLI {
     }
     
     pub fn opt(&mut self, name: &str, t: OptTyp) -> Result<&mut Self, OptError> {
+        if !self.unprocessed {
+            return Err(OptError{cause: format!("the option {name} can't be set after parsing arguments")})
+        }
         for opt in &self.opts {
             if opt.nme == name {
                 return Err(OptError{cause: format!("repeating option {name}")})
