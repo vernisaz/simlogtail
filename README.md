@@ -30,7 +30,7 @@ if cli.get_opt("v") == Some(&OptVal::Empty) {
 } else if cli.get_opt("h") == Some(&OptVal::Empty)  || cli.args().len()  != 1 {
     return Ok(println!("simtail [opts] <file path>\n{}", cli.get_description()?))
 }
-tail_of(&cli.args().first()?);
+tail_of(&cli.args().first()?, lns)?;
 ```
 
 If you have arguments in a form like - *-Xname=value*, then you can define them 
