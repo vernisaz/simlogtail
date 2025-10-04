@@ -76,13 +76,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         return Ok(println!("Usage: simtail [opts] <file path>\n{}", cli.get_description().unwrap()))
     }
     let compact = cli.get_opt("c") == Some(&OptVal::Empty);
-    Ok( match read_last_n_lines(&cli.args()[0], lns, compact) {
+    Ok( match read_last_n_lines(&cli.args().first().unwrap(), lns, compact) {
                 Ok(lines) => {
                     println!("\nLast {lns} lines (or fewer if not available) of {}:", &cli.args()[0]);
                     let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
                     for line in lines {
-                        match line.split_once('[').
-                        and_then(|(before,after)| {after.split_once(']')
+                        match line.split_once('[')
+                        .and_then(|(before,after)| {after.split_once(']')
                         .and_then(|(date,tail)| {
                             match date.parse::<i64>() {
                                 Ok(date) => { let (y,m,d,h,mm,s,_) = simtime::get_datetime(1970, (date/1000i64 + (tz_off as i64) *60i64) as u64);
@@ -94,9 +94,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                             }
                     }
                 }
-                Err(e) => {
-                    eprintln!("Error reading file {} : {}", cli.args()[0], e);
-                }
+                Err(e) => eprintln!("Error reading file {} : {}", cli.args()[0], e)
         }
     )
 }
