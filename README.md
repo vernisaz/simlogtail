@@ -6,6 +6,22 @@ is
 my log file entries contain a timestamp in milliseconds since the epoch. The program converts
 the information in a human readable format.
 
+## Recommended project settings
+If you use [RDS](https://github.com/vernisaz/rust_dev_studio) for operating to the project,
+the following settings are recommended:
+```
+# property file settings-tail.prop on 10-03-2025 Friday, 10:29:28 -0800
+projectnp=no
+ai_server_url=
+colapsed_dirs=
+autosave=yes
+user=
+persist_tabs=no
+theme=Vibrant Ink
+proj_conf={"compile_debug":"rb build","compile_release":"rb -Dmode=release build","debug_app":"rb -- -n 4 -c README.md","run_app":"","test_app":"rb test","package_app":"rb package"}
+project_home=projects/simlogtail
+```
+
 ## Command line arguments
 Surprisingly, but AI doesn't give any simple and powerful command line arguments processor.
 The list of `clap`, `pico-args`, `lexopt`, `args`, and  `docopt` looks ridiculous.
