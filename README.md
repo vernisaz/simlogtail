@@ -59,3 +59,8 @@ and then use it for parsing command arguments as shown above.
 1. Obtain [RustBee](https://github.com/vernisaz/rust_bee) 
 2. Check out [Simple Time](https://github.com/vernisaz/simtime) and build (unless  already did that)
 3. Run *rb*
+
+## What to improve
+AI solution for viewing the tail works great, but for small files, where probably just scrolling
+isn't a big deal. How to rewrite the code making looking in the tail of multi terabyte files in a snap?
+Sure, you can do that!
