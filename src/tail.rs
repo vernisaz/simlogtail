@@ -76,7 +76,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         return Ok(println!("Usage: simtail [opts] <file path>\n{}", cli.get_description().unwrap()))
     }
     let compact = cli.get_opt("c") == Some(&OptVal::Empty);
-    Ok( match read_last_n_lines(cli.args().first().unwrap(), lns, cli.get_opt("c") == Some(&OptVal::Empty)) {
+    Ok( match read_last_n_lines(cli.args().first().unwrap(), lns, compact) {
                 Ok(lines) => {
                     println!("\nLast {lns} lines (or fewer if not available) of {}:", &cli.args()[0]);
                     let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
