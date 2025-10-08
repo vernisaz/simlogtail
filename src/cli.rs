@@ -167,8 +167,13 @@ impl CLI {
                                 opt.v = Some(OptVal::Arr(HashSet::new()))
                             }
                         }
+                    } else if opt.nme.len() == 1 && sarg.contains(&opt.nme) {
+                        match opt.t {
+                            OptTyp::None => opt.v = Some(OptVal::Empty),
+                            _ => (), // somehow to report data inconsistency
+                        }
                     }
-                }
+                } 
             } else {
                 self.args.push(arg)
             }
