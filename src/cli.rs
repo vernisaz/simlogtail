@@ -63,7 +63,7 @@ impl CLI {
                 return Err(OptError{cause: format!("repeating option {name}")})
             }
         }
-        self.opts.push(CliOpt{ t:t, nme: name.to_string(), descr:None, v:None});
+        self.opts.push(CliOpt{ t, nme: name.to_string(), descr:None, v:None});
         Ok(self)
     }
     
@@ -77,8 +77,8 @@ impl CLI {
     
     pub fn get_description(&self) -> Option<String> {
         let mut descr = String::new();
-        if self.descr.is_some() {
-            descr += &self.descr.as_ref().unwrap()
+        if let Some(some_descr) = &self.descr {
+            descr += some_descr
         }
         for opt in &self.opts {
             descr += &format!("\n{OPT_PREFIX}{}", opt.nme);
