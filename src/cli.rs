@@ -122,31 +122,20 @@ impl CLI {
                 for opt in &mut self.opts {
                     if opt.nme == sarg {
                         match opt.t {
-                            OptTyp::Num => {
-                                match args.next() {
-                                    Some(val) => {
-                                        match val.parse::<i64>() {
-                                            Ok (num) => opt.v = Some(OptVal::Num(num)),
-                                            _ => opt.v = Some(OptVal::Unmatch)
-                                        }
+                            OptTyp::Num => if let Some(val) = args.next() {
+                                    match val.parse::<i64>() {
+                                        Ok (num) => opt.v = Some(OptVal::Num(num)),
+                                        _ => opt.v = Some(OptVal::Unmatch)
                                     }
-                                    _ => ()
                                 }
-                            },
                             OptTyp::None => opt.v = Some(OptVal::Empty),
-                            OptTyp::FNum => match args.next() {
-                                    Some(val) => {
-                                        match val.parse::<f64>() {
-                                            Ok (num) => opt.v = Some(OptVal::FNum(num)),
-                                            _ => opt.v = Some(OptVal::Unmatch)
-                                        }
-                                    }
-                                    _ => ()
+                            OptTyp::FNum => if let Some(val) = args.next() {
+                                match val.parse::<f64>() {
+                                    Ok (num) => opt.v = Some(OptVal::FNum(num)),
+                                    _ => opt.v = Some(OptVal::Unmatch)
                                 }
-                            OptTyp::Str => match args.next() {
-                                Some(str) => opt.v = Some(OptVal::Str(str)),
-                                _ => ()
                             }
+                            OptTyp::Str => if let Some(str) = args.next() { opt.v = Some(OptVal::Str(str)) }
                             OptTyp::InStr => ()
                         }
                     } else if opt.t == OptTyp::InStr && sarg.starts_with(&opt.nme) {
@@ -167,11 +156,8 @@ impl CLI {
                                 opt.v = Some(OptVal::Arr(HashSet::new()))
                             }
                         }
-                    } else if opt.nme.len() == 1 && sarg.contains(&opt.nme) {
-                        match opt.t {
-                            OptTyp::None => opt.v = Some(OptVal::Empty),
-                            _ => (), // somehow to report data inconsistency
-                        }
+                    } else if opt.nme.len() == 1 && sarg.contains(&opt.nme) && opt.t == OptTyp::None{
+                        opt.v = Some(OptVal::Empty) ;
                     }
                 } 
             } else {
