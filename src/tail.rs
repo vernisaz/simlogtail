@@ -1,10 +1,12 @@
-extern crate color;
+//extern crate color;
 
-use color::Colorize;
+//use color::Colorize;
+use color::Colorized;
 use std::{error::Error,
  env, fs, path::Path};
 extern crate simtime;
 mod cli;
+mod color;
 use crate::cli::{CLI,OptTyp,OptVal};
 
 const VERSION: &str = env!("VERSION");
