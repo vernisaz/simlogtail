@@ -70,6 +70,10 @@ use crate::cli::{CLI,OptTyp,OptVal};
 ```
 and then use it for parsing command arguments as shown above.
 
+## Colorized out
+Colors can added in an out of the tail.
+The Colored crate can be compiled using [bee.7b](./colorized/bee.7b).
+
 ## How to build
 
 1. Obtain [RustBee](https://github.com/vernisaz/rust_bee) 
