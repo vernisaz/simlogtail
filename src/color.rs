@@ -11,7 +11,7 @@ pub enum Color {
     White,
     #[default]
     Notset,
-    System,
+    Unset,
 }
 #[derive(Debug, Clone)] 
 pub struct ColorHolder<B>{
@@ -42,7 +42,7 @@ pub trait Colorized : Sized {
         }
     }
     fn on(self) -> ColorHolder<Self> {
-        self.color(Color::System)
+        self.color(Color::Unset)
     }
     fn blue(self) -> ColorHolder<Self> {
           self.color(Color::Blue)
@@ -92,14 +92,14 @@ impl<T> ColorHolder<T> {
     }
     pub fn on(mut self) -> Self {
         if self.fg == Color::Notset {
-            self.fg = Color::System
+            self.fg = Color::Unset
         }
         self
     }
 
     fn ansi(&self) -> String {
         let mut color = String::new();
-        if self.fg != Color::Notset && self.fg != Color::System {
+        if self.fg != Color::Notset && self.fg != Color::Unset {
             if self.bright {color.push('9')} else {color.push('3')} 
             color .push(get_color_num(&self.fg))
         }
