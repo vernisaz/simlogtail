@@ -89,7 +89,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .and_then(|(date,tail)| {
                             match date.parse::<i64>() {
                                 Ok(date) => { let (y,m,d,h,mm,s,_) = simtime::get_datetime(1970, (date/1000i64 + (tz_off as i64) *60i64) as u64);
-                                    Some(format!("{before} {} {tail}", format!("{m}-{d:02}-{y} {h}:{mm:02}:{s:02}").blue().bright().on_black()))},
+                                    Some(format!("{before} {} {tail}", format!("{m}-{d:02}-{y} {h}:{mm:02}:{s:02}").blue().bright().on().yellow()))},
                                 _ => None,
                             } }) }) {
                                 Some(line) => println!("{}", line),
