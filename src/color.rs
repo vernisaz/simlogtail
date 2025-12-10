@@ -56,6 +56,15 @@ pub trait Colorized : Sized {
     fn red(self) -> ColorHolder<Self> {
           self.color(Color::Red)
     }
+    fn white(self) -> ColorHolder<Self> {
+          self.color(Color::White)
+    }
+    fn green(self) -> ColorHolder<Self> {
+        self.color(Color::Green)
+    }
+    fn cyan(self) -> ColorHolder<Self> {
+          self.color(Color::Cyan)
+    }
 }
 
 impl<T> ColorHolder<T> {
