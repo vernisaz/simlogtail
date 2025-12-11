@@ -70,15 +70,13 @@ use crate::cli::{CLI,OptTyp,OptVal};
 ```
 and then use it for parsing command arguments as shown above.
 
-## Colorized out
-Colors can added in an out of the tail.
-The Colored crate can be compiled using [bee.7b](./colorized/bee.7b).
-
 ## How to build
 
 1. Obtain [RustBee](https://github.com/vernisaz/rust_bee) 
 2. Check out [Simple Time](https://github.com/vernisaz/simtime) and build (unless  already did that)
 3. Run *rb*
+4. Check out [SimpleColor](https://github.com/vernisaz/simcolor) and build (unless  already did that)
+5. Run *rb*
 
 ## What to improve
 AI solution for viewing the tail works great, but for small files, where probably just scrolling

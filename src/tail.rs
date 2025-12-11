@@ -1,12 +1,10 @@
-//extern crate color;
+extern crate simcolor;
 
-//use color::Colorize;
-use color::Colorized;
+use simcolor::Colorized;
 use std::{error::Error,
  env, fs, path::Path};
 extern crate simtime;
 mod cli;
-mod color;
 use crate::cli::{CLI,OptTyp,OptVal};
 
 const VERSION: &str = env!("VERSION");
@@ -89,7 +87,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .and_then(|(date,tail)| {
                             match date.parse::<i64>() {
                                 Ok(date) => { let (y,m,d,h,mm,s,_) = simtime::get_datetime(1970, (date/1000i64 + (tz_off as i64) *60i64) as u64);
-                                    Some(format!("{before} {} {tail}", format!("{m}-{d:02}-{y} {h}:{mm:02}:{s:02}").blue().bright().on().yellow()))},
+                                    Some(format!("{before} {} {tail}", format!("{m}-{d:02}-{y} {h}:{mm:02}:{s:02}").blue().bright().on().bright().yellow()))},
                                 _ => None,
                             } }) }) {
                                 Some(line) => println!("{}", line),
