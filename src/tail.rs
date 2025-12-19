@@ -72,14 +72,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     
     
     if cli.get_opt("v") == Some(&OptVal::Empty) {
-        return Ok(println!("\nVersion {VERSION}"))
+        return Ok(println!("\nVersion {}", VERSION.green()))
     } else if cli.get_opt("h") == Some(&OptVal::Empty)  || cli.args().len()  != 1 {
-        return Ok(println!("Usage: simtail [opts] <file path>\n{}", cli.get_description().unwrap()))
+        return Ok(println!("Usage: simtail [opts] <file path>\n{}", cli.get_description().unwrap().bright().blue()))
     }
     let compact = cli.get_opt("c") == Some(&OptVal::Empty);
     Ok( match read_last_n_lines(cli.args().first().unwrap(), lns, compact) {
                 Ok(lines) => {
-                    println!("\nLast {lns} lines (or fewer if not available) of {}:", &cli.args()[0]);
+                    println!("\nLast {lns} lines (or fewer if not available) of {}:", &cli.args()[0].clone().green());
                     let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
                     for line in lines {
                         match line.split_once('[')
@@ -95,7 +95,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                             }
                     }
                 }
-                Err(e) => eprintln!("Error reading file {} : {}", cli.args()[0], e)
+                Err(e) => eprintln!("Error reading file {} : {}", cli.args()[0].clone().red(), e)
         }
     )
 }
