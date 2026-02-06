@@ -84,48 +84,56 @@ fn main() -> Result<(), Box<dyn Error>> {
     if cli.get_opt("v") == Some(&OptVal::Empty) {
         return Ok(println!("\nVersion {}", VERSION.green()));
     } else if cli.get_opt("h") == Some(&OptVal::Empty) || cli.args().len() != 1 {
-        return Ok(println!(
+        let message = format!(
             "Usage: simtail [opts] <file path>\n{}",
             cli.get_description().unwrap().bright().blue()
-        ));
+        );
+        return Err(Box::new(message.bold()));
     }
     let compact = cli.get_opt("c") == Some(&OptVal::Empty);
-    Ok(
-        match read_last_n_lines(cli.args().first().unwrap(), lns, compact) {
-            Ok(lines) => {
-                println!(
-                    "\nLast {lns} lines (or fewer if not available) of {}:",
-                    &cli.args()[0].clone().green()
-                );
-                let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
-                for line in lines {
-                    match line.split_once('[').and_then(|(before, after)| {
-                        after
-                            .split_once(']')
-                            .and_then(|(date, tail)| match date.parse::<i64>() {
-                                Ok(date) => {
-                                    let (y, m, d, h, mm, s, _) = simtime::get_datetime(
-                                        1970,
-                                        (date / 1000i64 + (tz_off as i64) * 60i64) as u64,
-                                    );
-                                    Some(format!(
-                                        "{before} {} {tail}",
-                                        format!("{m}-{d:02}-{y} {h}:{mm:02}:{s:02}")
-                                            .blue()
-                                            .on()
-                                            .bright()
-                                            .yellow()
-                                    ))
-                                }
-                                _ => None,
-                            })
-                    }) {
-                        Some(line) => println!("{}", line),
-                        _ => println!("{}", line),
-                    }
+
+    match read_last_n_lines(cli.args().first().unwrap(), lns, compact) {
+        Ok(lines) => {
+            println!(
+                "\nLast {lns} lines (or fewer if not available) of {}:",
+                &cli.args()[0].clone().green()
+            );
+            let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
+            for line in lines {
+                match line.split_once('[').and_then(|(before, after)| {
+                    after
+                        .split_once(']')
+                        .and_then(|(date, tail)| match date.parse::<i64>() {
+                            Ok(date) => {
+                                let (y, m, d, h, mm, s, _) = simtime::get_datetime(
+                                    1970,
+                                    (date / 1000i64 + (tz_off as i64) * 60i64) as u64,
+                                );
+                                Some(format!(
+                                    "{before} {} {tail}",
+                                    format!("{m}-{d:02}-{y} {h}:{mm:02}:{s:02}")
+                                        .blue()
+                                        .on()
+                                        .bright()
+                                        .yellow()
+                                ))
+                            }
+                            _ => None,
+                        })
+                }) {
+                    Some(line) => println!("{}", line),
+                    _ => println!("{}", line),
                 }
             }
-            Err(e) => eprintln!("Error reading file {} : {}", cli.args()[0].clone().red(), e),
-        },
-    )
+            Ok(())
+        }
+        Err(e) => Err(Box::new(
+            format!(
+                "Error reading file {} : {}",
+                cli.args().first().unwrap().clone().red(),
+                e
+            )
+            .bold(),
+        )),
+    }
 }
