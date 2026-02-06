@@ -84,11 +84,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     if cli.get_opt("v") == Some(&OptVal::Empty) {
         return Ok(println!("\nVersion {}", VERSION.green()));
     } else if cli.get_opt("h") == Some(&OptVal::Empty) || cli.args().len() != 1 {
-        let message = format!(
-            "Usage: simtail [opts] <file path>\n{}",
-            cli.get_description().unwrap().bright().blue()
-        );
-        return Err(Box::new(message.bold()));
+        return Err(Box::new(
+            format!(
+                "Usage: simtail [opts] <file path>\n{}",
+                cli.get_description().unwrap().bright().blue()
+            )
+            .default(),
+        ));
     }
     let compact = cli.get_opt("c") == Some(&OptVal::Empty);
 
@@ -133,7 +135,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 cli.args().first().unwrap().clone().red(),
                 e
             )
-            .bold(),
+            .default(),
         )),
     }
 }
