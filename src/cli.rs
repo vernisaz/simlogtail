@@ -95,11 +95,7 @@ impl CLI {
                 descr += &format!("\t{}", opt.descr.as_ref().unwrap())
             }
         }
-        if descr.is_empty() {
-            None
-        } else {
-            Some(descr)
-        }
+        if descr.is_empty() { None } else { Some(descr) }
     }
 
     pub fn get_opt(&mut self, name: &str) -> Option<&OptVal> {
