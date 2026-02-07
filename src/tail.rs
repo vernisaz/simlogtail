@@ -25,7 +25,7 @@ pub fn read_last_n_lines<P: AsRef<Path>>(
 ) -> Result<Vec<String>, std::io::Error> {
     let contents = fs::read_to_string(path)?;
     let lines: Vec<_> = contents.lines().collect();
-    if skip_empty {
+    Ok(if skip_empty {
         let mut lines = lines.into_iter().rev();
         let mut res = Vec::new();
         while let Some(line) = lines.next()
@@ -35,14 +35,14 @@ pub fn read_last_n_lines<P: AsRef<Path>>(
                 res.push(line)
             }
         }
-        Ok(res.into_iter().rev().map(|s| s.to_string()).collect())
+        res.into_iter().rev().map(|s| s.to_string()).collect()
     } else {
         let start_index = lines.len().saturating_sub(n);
-        Ok(lines[start_index..]
+        lines[start_index..]
             .iter()
             .map(|&s| s.to_string())
-            .collect())
-    }
+            .collect()
+    })
 }
 
 #[cfg(test)]
