@@ -69,12 +69,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut cli = CLI::new();
     cli.description("Where opts:")
         .opt("n", OptTyp::Num)?
-        .description("Number lines")
+        .description("Number of shown lines")
         .opt("v", OptTyp::None)?
         .description("Version")
         .opt("h", OptTyp::None)?
         .opt("c", OptTyp::None)?
-        .description("Compact empty lines in the tail");
+        .description("Do not show empty lines in the out");
     #[cfg(test)]
     test_cli(&mut cli);
     let lns = match cli.get_opt("n") {
