@@ -27,7 +27,7 @@ pub fn read_last_n_lines<P: AsRef<Path>>(
     let lines: Vec<_> = contents.lines().collect();
     Ok(if skip_empty {
         let mut lines = lines.into_iter().rev();
-        let mut res = Vec::new();
+        let mut res = Vec::with_capacity(n);
         while let Some(line) = lines.next()
             && res.len() < n
         {
@@ -35,7 +35,7 @@ pub fn read_last_n_lines<P: AsRef<Path>>(
                 res.push(line)
             }
         }
-        res.into_iter().rev().map(|s| s.to_string()).collect()
+        res.into_iter().rev().map(|s| s.into()).collect()
     } else {
         let start_index = lines.len().saturating_sub(n);
         lines[start_index..]

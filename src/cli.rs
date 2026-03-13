@@ -91,8 +91,8 @@ impl CLI {
         }
         for opt in &self.opts {
             descr += &format!("\n{OPT_PREFIX}{}", opt.nme);
-            if opt.descr.is_some() {
-                descr += &format!("\t{}", opt.descr.as_ref().unwrap())
+            if let Some(some_descr) = &opt.descr {
+                descr += &format!("\t{some_descr}")
             }
         }
         if descr.is_empty() { None } else { Some(descr) }
