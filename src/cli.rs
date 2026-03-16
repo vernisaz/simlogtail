@@ -6,6 +6,7 @@ const OPT_PREFIX: char = '-';
 const OPT_PREFIX: char = '/';
 
 #[derive(PartialEq)]
+#[allow(dead_code)]
 pub enum OptTyp {
     Num,
     FNum,
@@ -38,6 +39,7 @@ pub struct CliOpt {
     nme: String,
     descr: Option<String>,
 }
+#[allow(clippy::upper_case_acronyms)]
 pub struct CLI {
     args: Vec<String>,
     opts: Vec<CliOpt>,
