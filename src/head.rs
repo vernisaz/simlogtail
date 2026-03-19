@@ -1,68 +1,51 @@
 extern crate simcolor;
 
 use simcolor::Colorized;
-use std::{env, error::Error, fs, path::Path};
+use std::{
+    env,
+    error::Error,
+    fs::File,
+    io::{BufRead, BufReader},
+    path::Path,
+};
 extern crate simtime;
 mod cli;
 use crate::cli::{CLI, OptTyp, OptVal};
 
 const VERSION: &str = env!("VERSION");
-/// Reads a file and returns the last `n` lines as a vector of strings.
+
+/// Reads a file and returns the first `n` lines as a vector of strings.
 ///
 /// # Arguments
 ///
 /// * `path` - A reference to the file path.
-/// * `n` - The number of lines to read from the end of the file.
+/// * `n` - The number of lines to read from the begining of the file.
 ///
 /// # Returns
 ///
-/// A `Result` containing a `Vec<String>` of the last `n` lines,
+/// A `Result` containing a `Vec<String>` of the first `n` lines,
 /// or an `io::Error` if the file cannot be read.
-pub fn read_last_n_lines<P: AsRef<Path>>(
+pub fn read_first_n_lines<P: AsRef<Path>>(
     path: P,
     n: usize,
     skip_empty: bool,
 ) -> Result<Vec<String>, std::io::Error> {
-    let contents = fs::read_to_string(path)?;
-    let lines: Vec<_> = contents.lines().collect();
-    Ok(if skip_empty {
-        let mut lines = lines.into_iter().rev();
-        let mut res = Vec::with_capacity(n);
-        while let Some(line) = lines.next()
-            && res.len() < n
-        {
-            if !line.trim().is_empty() {
-                res.push(line)
-            }
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+    let mut res = Vec::with_capacity(n);
+    let mut count = 0_usize;
+    for line in reader.lines() {
+        if count >= n {
+            break;
         }
-        res.into_iter().rev().map(|s| s.into()).collect()
-    } else {
-        let start_index = lines.len().saturating_sub(n);
-        lines[start_index..]
-            .iter()
-            .map(|&s| s.to_string())
-            .collect()
-    })
-}
-
-#[cfg(test)]
-fn test_cli(cli: &mut CLI) {
-    match cli.opt("D", OptTyp::InStr) {
-        Ok(ref mut cli) => {
-            cli.description("A definition as name=value");
+        let line = line?; // Handle potential errors
+        if skip_empty && line.trim().is_empty() {
+            continue;
         }
-        _ => (),
+        res.push(line);
+        count += 1
     }
-    let _ = cli.opt("c", OptTyp::None).inspect_err(|e| eprintln!("{e}"));
-    let d_o = cli.get_opt("D");
-    if let Some(OptVal::Arr(d_o)) = d_o {
-        for (i, d) in d_o.into_iter().enumerate() {
-            eprintln!("opt[{i}] {}={}", d.0, d.1);
-        }
-    } else {
-        eprintln!("no def found")
-    }
-    let _ = cli.opt("X", OptTyp::Str).inspect_err(|e| eprintln!("{e}"));
+    Ok(res)
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -75,12 +58,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         .opt("h", OptTyp::None)?
         .opt("c", OptTyp::None)?
         .description("Do not show empty lines in the out");
-    #[cfg(test)]
-    test_cli(&mut cli);
-    let lns = match cli.get_opt("n") {
-        Some(OptVal::Num(n)) => *n as usize,
-        _ => 15usize,
-    };
     if cli.get_opt("v") == Some(&OptVal::Empty) {
         #[allow(clippy::unit_arg)]
         return Ok(println!("\nVersion {}", VERSION.green()));
@@ -94,11 +71,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         ));
     }
     let compact = cli.get_opt("c") == Some(&OptVal::Empty);
-
-    match read_last_n_lines(cli.args().first().unwrap(), lns, compact) {
+    let lns = match cli.get_opt("n") {
+        Some(OptVal::Num(n)) => *n as usize,
+        _ => 15usize,
+    };
+    match read_first_n_lines(cli.args().first().unwrap(), lns, compact) {
         Ok(lines) => {
             println!(
-                "\nLast {lns} lines (or fewer if not available) of {}:",
+                "\nFirst {lns} lines (or fewer if not available) of {}:",
                 &cli.args()[0].clone().green()
             );
             let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
