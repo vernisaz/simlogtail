@@ -66,7 +66,7 @@ pub fn read_last_n_lines<P: AsRef<Path>>(
 ) -> Result<Vec<String>, std::io::Error> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
-    let mut res = CircularBuffer::<String>::with_capacity(n);
+    let mut res = CircularBuffer::with_capacity(n);
     for line in reader.lines() {
         let line = line?; // Handle potential errors
         if skip_empty && line.trim().is_empty() {
