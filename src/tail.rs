@@ -67,6 +67,7 @@ pub fn read_last_n_lines<P: AsRef<Path>>(
     let file = File::open(path)?;
     let reader = BufReader::new(file);
     let mut res = CircularBuffer::with_capacity(n);
+    // TODO investigate how seek to the end of the file and then read
     for line in reader.lines() {
         let line = line?; // Handle potential errors
         if skip_empty && line.trim().is_empty() {
@@ -74,14 +75,14 @@ pub fn read_last_n_lines<P: AsRef<Path>>(
         }
         res.push(line);
     }
-    if res.head == 0 {
-        Ok(res.buffer)
+    Ok(if res.head == 0 {
+        res.buffer
     } else {
         let mut res2 = Vec::with_capacity(res.buffer.len());
         res2.extend_from_slice(&mut res.buffer[res.head..]);
-        res2.extend_from_slice(&mut res.buffer[..res.head]);
-        Ok(res2)
-    }
+        res2.extend_from_slice(&mut res.buffer[..res.tail]);
+        res2
+    })
 }
 
 #[cfg(test)]
