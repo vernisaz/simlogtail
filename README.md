@@ -6,20 +6,24 @@ is
 my log file entries contain a timestamp in milliseconds since the epoch. The program converts
 the information in a human readable format.
 
+There is also `simhead` counterpart added.
+
 ## Recommended project settings
 If you use [RDS](https://github.com/vernisaz/rust_dev_studio) for operating to the project,
 the following settings are recommended:
 ```
-# property file settings-tail.prop on 10-03-2025 Friday, 10:29:28 -0800
-projectnp=no
-ai_server_url=
-colapsed_dirs=
-autosave=yes
-user=
-persist_tabs=no
-theme=Vibrant Ink
-proj_conf={"compile_debug":"rb build","compile_release":"rb -Dmode=release build","debug_app":"rb -- -n 4 -c README.md","run_app":"","test_app":"rb test","package_app":"rb package"}
+# property file on 03-18-2026 Wednesday, 20:08:45 -0700
+src_dir=
 project_home=projects/simlogtail
+colapsed_dirs=
+theme=One
+proj_conf={"compile_debug":"rb -f bee","compile_release":"rb -Dmode=release -r -f bee","clippy":"rb clippy -f bee","debug_app":"rb -f bee-head","run_app":"rb clippy","test_app":"rb test","package_app":"rb package","format_src":"rustfmt --edition 2024"}
+projectnp=no
+user=V<javaarchitect@msn.com>
+persist_tabs=no
+ai_server_url=
+format_on_save=yes
+autosave=yes
 ```
 
 ## Command line arguments
@@ -43,8 +47,8 @@ let lns = match cli.get_opt("n") {
 };
 if cli.get_opt("v") == Some(&OptVal::Empty) {
     return Ok(println!("\nVersion {VERSION}"))
-} else if cli.get_opt("h") == Some(&OptVal::Empty)  || cli.args().len()  != 1 {
-    return Ok(println!("simtail [opts] <file path>\n{}", cli.get_description()?))
+} else if cli.get_opt("h") == Some(&OptVal::Empty) {
+    return Ok(println!("simtail [opts] <file path>[ ...<file path>]\n{}", cli.get_description()?))
 }
 tail_of(&cli.args().first()?, lns)?;
 ```
@@ -73,12 +77,13 @@ and then use it for parsing command arguments as shown above.
 ## How to build
 
 1. Obtain [RustBee](https://github.com/vernisaz/rust_bee) 
-2. Check out [Simple Time](https://github.com/vernisaz/simtime) and build (unless  already did that)
+2. Check out [Simple Time](https://github.com/vernisaz/simtime) and build (unless   did that already)
 3. Run *rb*
 4. Check out [SimpleColor](https://github.com/vernisaz/simcolor) and build (unless  already did that)
 5. Run *rb*
 
 ## What to improve
-AI solution for viewing the tail works great, but for small files, where probably just scrolling
-isn't a big deal. How to rewrite the code making looking in the tail of multi terabyte files in a snap?
-Sure, you can do that!
+The current solution to deal with big files can impact the performance. So a predition
+to seek file position and then read, can be desirable.
+
+Another improvement can be keep running the program and read new lines as they are available.

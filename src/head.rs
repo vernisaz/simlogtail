@@ -1,5 +1,5 @@
 extern crate simcolor;
-
+extern crate simtime;
 use simcolor::Colorized;
 use std::{
     env,
@@ -8,7 +8,7 @@ use std::{
     io::{BufRead, BufReader},
     path::Path,
 };
-extern crate simtime;
+
 mod cli;
 use crate::cli::{CLI, OptTyp, OptVal};
 
@@ -65,7 +65,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else if cli.get_opt("h") == Some(&OptVal::Empty) {
         return Err(Box::new(
             format!(
-                "Usage: simtail [opts] <file path [...file path]>\n{}",
+                "Usage: simtail [opts] <file path>[ ...<file path>]\n{}",
                 cli.get_description().unwrap().bright().blue()
             )
             .default(),
@@ -77,50 +77,43 @@ fn main() -> Result<(), Box<dyn Error>> {
         _ => 15usize,
     };
     for arg in cli.args() {
-    match read_first_n_lines(arg, lns, compact) {
-        Ok(lines) => {
-            println!(
-                "\nFirst {lns} lines (or fewer if not available) of {}:",
-                &arg.clone().green()
-            );
-            let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
-            for line in lines {
-                match line.split_once('[').and_then(|(before, after)| {
-                    after
-                        .split_once(']')
-                        .and_then(|(date, tail)| match date.parse::<i64>() {
-                            Ok(date) => {
-                                let (y, m, d, h, mm, s, _) = simtime::get_datetime(
-                                    1970,
-                                    (date / 1000i64 + (tz_off as i64) * 60i64) as u64,
-                                );
-                                let ms = date % 1000;
-                                Some(format!(
-                                    "{before} {} {tail}",
-                                    format!("{m}-{d:02}-{y} {h}:{mm:02}:{s:02}.{ms:03}")
-                                        .blue()
-                                        .on()
-                                        .bright()
-                                        .yellow()
-                                ))
-                            }
-                            _ => None,
-                        })
-                }) {
-                    Some(line) => println!("{}", line),
-                    _ => println!("{}", line),
+        match read_first_n_lines(arg, lns, compact) {
+            Ok(lines) => {
+                println!(
+                    "\nFirst {lns} lines (or fewer if not available) of {}:",
+                    &arg.clone().green()
+                );
+                let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
+                for line in lines {
+                    match line.split_once('[').and_then(|(before, after)| {
+                        after
+                            .split_once(']')
+                            .and_then(|(date, tail)| match date.parse::<i64>() {
+                                Ok(date) => {
+                                    let (y, m, d, h, mm, s, _) = simtime::get_datetime(
+                                        1970,
+                                        (date / 1000i64 + (tz_off as i64) * 60i64) as u64,
+                                    );
+                                    let ms = date % 1000;
+                                    Some(format!(
+                                        "{before} {} {tail}",
+                                        format!("{m}-{d:02}-{y} {h}:{mm:02}:{s:02}.{ms:03}")
+                                            .blue()
+                                            .on()
+                                            .bright()
+                                            .yellow()
+                                    ))
+                                }
+                                _ => None,
+                            })
+                    }) {
+                        Some(line) => println!("{}", line),
+                        _ => println!("{}", line),
+                    }
                 }
             }
-            
+            Err(e) => eprintln!("Error reading file {} : {}", arg.clone().red(), e),
         }
-        Err(e) => 
-            eprintln!(
-                "Error reading file {} : {}",
-                arg.clone().red(),
-                e
-            )
-       ,
-    }
     }
     Ok(())
 }

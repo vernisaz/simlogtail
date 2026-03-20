@@ -1,5 +1,12 @@
-extern crate simcolor;
+//! it is an example of Rust implementation of a popular Unix utility - tail
+//! ## Purpose
+//! I work on different systems where `tail` like command can be not available. Another reason
+//! is
+//! my log file entries contain a timestamp in milliseconds since the epoch. The program converts
+//! the information in a human readable format.
 
+extern crate simcolor;
+extern crate simtime;
 use simcolor::Colorized;
 use std::{
     env,
@@ -8,7 +15,7 @@ use std::{
     io::{BufRead, BufReader},
     path::Path,
 };
-extern crate simtime;
+
 mod cli;
 use crate::cli::{CLI, OptTyp, OptVal};
 
@@ -134,47 +141,44 @@ fn main() -> Result<(), Box<dyn Error>> {
         ));
     }
     let compact = cli.get_opt("c") == Some(&OptVal::Empty);
-for arg in cli.args() {
-    match read_last_n_lines(arg, lns, compact) {
-        Ok(lines) => {
-            println!(
-                "\nLast {lns} lines (or fewer if not available) of {}:",
-                arg.clone().green()
-            );
-            let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
-            for line in lines {
-                match line.split_once('[').and_then(|(before, after)| {
-                    after
-                        .split_once(']')
-                        .and_then(|(date, tail)| match date.parse::<i64>() {
-                            Ok(date) => {
-                                let (y, m, d, h, mm, s, _) = simtime::get_datetime(
-                                    1970,
-                                    (date / 1000i64 + (tz_off as i64) * 60i64) as u64,
-                                );
-                                let ms = date % 1000;
-                                Some(format!(
-                                    "{before} {} {tail}",
-                                    format!("{m}-{d:02}-{y} {h}:{mm:02}:{s:02}.{ms:03}")
-                                        .blue()
-                                        .on()
-                                        .bright()
-                                        .yellow()
-                                ))
-                            }
-                            _ => None,
-                        })
-                }) {
-                    Some(line) => println!("{}", line),
-                    _ => println!("{}", line),
+    for arg in cli.args() {
+        match read_last_n_lines(arg, lns, compact) {
+            Ok(lines) => {
+                println!(
+                    "\nLast {lns} lines (or fewer if not available) of {}:",
+                    arg.clone().green()
+                );
+                let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
+                for line in lines {
+                    match line.split_once('[').and_then(|(before, after)| {
+                        after
+                            .split_once(']')
+                            .and_then(|(date, tail)| match date.parse::<i64>() {
+                                Ok(date) => {
+                                    let (y, m, d, h, mm, s, _) = simtime::get_datetime(
+                                        1970,
+                                        (date / 1000i64 + (tz_off as i64) * 60i64) as u64,
+                                    );
+                                    let ms = date % 1000;
+                                    Some(format!(
+                                        "{before} {} {tail}",
+                                        format!("{m}-{d:02}-{y} {h}:{mm:02}:{s:02}.{ms:03}")
+                                            .blue()
+                                            .on()
+                                            .bright()
+                                            .yellow()
+                                    ))
+                                }
+                                _ => None,
+                            })
+                    }) {
+                        Some(line) => println!("{}", line),
+                        _ => println!("{}", line),
+                    }
                 }
             }
+            Err(e) => eprintln!("Error reading file {} : {}", arg.clone().red(), e),
         }
-        Err(e) => eprintln!(
-                "Error reading file {} : {}",
-                arg.clone().red(),
-                e
-            ),
-    }}
+    }
     Ok(())
 }
