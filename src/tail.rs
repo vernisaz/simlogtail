@@ -1,12 +1,53 @@
 extern crate simcolor;
 
 use simcolor::Colorized;
-use std::{env, error::Error, fs, path::Path};
+use std::{
+    env,
+    error::Error,
+    fs::File,
+    io::{BufRead, BufReader},
+    path::Path,
+};
 extern crate simtime;
 mod cli;
 use crate::cli::{CLI, OptTyp, OptVal};
 
 const VERSION: &str = env!("VERSION");
+
+struct CircularBuffer<T> {
+    buffer: Vec<T>,
+    head: usize,
+    tail: usize,
+    capacity: usize,
+    size: usize,
+}
+
+impl<T> CircularBuffer<T> {
+    pub fn with_capacity(capacity: usize) -> Self {
+        CircularBuffer {
+            buffer: Vec::with_capacity(capacity),
+            head: 0,
+            tail: 0,
+            capacity,
+            size: 0,
+        }
+    }
+
+    pub fn push(&mut self, element: T) {
+        if self.tail == self.buffer.len() {
+            self.buffer.push(element)
+        } else {
+            self.buffer[self.tail] = element;
+        }
+        if self.size == self.capacity {
+            self.head = (self.head + 1) % self.capacity; // Overwrite oldest
+        } else {
+            self.size += 1;
+        }
+        self.tail = (self.tail + 1) % self.capacity; // Move tail
+    }
+}
+
 /// Reads a file and returns the last `n` lines as a vector of strings.
 ///
 /// # Arguments
@@ -23,26 +64,17 @@ pub fn read_last_n_lines<P: AsRef<Path>>(
     n: usize,
     skip_empty: bool,
 ) -> Result<Vec<String>, std::io::Error> {
-    let contents = fs::read_to_string(path)?;
-    let lines: Vec<_> = contents.lines().collect();
-    Ok(if skip_empty {
-        let mut lines = lines.into_iter().rev();
-        let mut res = Vec::with_capacity(n);
-        while let Some(line) = lines.next()
-            && res.len() < n
-        {
-            if !line.trim().is_empty() {
-                res.push(line)
-            }
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+    let mut res = CircularBuffer::<String>::with_capacity(n);
+    for line in reader.lines() {
+        let line = line?; // Handle potential errors
+        if skip_empty && line.trim().is_empty() {
+            continue;
         }
-        res.into_iter().rev().map(|s| s.into()).collect()
-    } else {
-        let start_index = lines.len().saturating_sub(n);
-        lines[start_index..]
-            .iter()
-            .map(|&s| s.to_string())
-            .collect()
-    })
+        res.push(line);
+    }
+    Ok(res.buffer)
 }
 
 #[cfg(test)]
