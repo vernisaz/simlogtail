@@ -152,9 +152,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                                     1970,
                                     (date / 1000i64 + (tz_off as i64) * 60i64) as u64,
                                 );
+                                let ms = date % 1000;
                                 Some(format!(
                                     "{before} {} {tail}",
-                                    format!("{m}-{d:02}-{y} {h}:{mm:02}:{s:02}")
+                                    format!("{m}-{d:02}-{y} {h}:{mm:02}:{s:02}.{ms:03}")
                                         .blue()
                                         .on()
                                         .bright()
