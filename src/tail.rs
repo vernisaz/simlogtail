@@ -86,8 +86,8 @@ pub fn read_last_n_lines<P: AsRef<Path>>(
         res.buffer
     } else {
         let mut res2 = Vec::with_capacity(res.buffer.len());
-        res2.extend_from_slice(&mut res.buffer[res.head..]);
-        res2.extend_from_slice(&mut res.buffer[..res.tail]);
+        res2.extend_from_slice(&res.buffer[res.head..]);
+        res2.extend_from_slice(&res.buffer[..res.tail]);
         res2
     })
 }
