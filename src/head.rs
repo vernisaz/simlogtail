@@ -70,6 +70,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             )
             .default(),
         ));
+    } else if cli.args().is_empty() {
+        return Err("No file specified".red().into());
     }
     let compact = cli.get_opt("c") == Some(&OptVal::Empty);
     let lns = match cli.get_opt("n") {
