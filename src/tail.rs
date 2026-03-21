@@ -114,7 +114,7 @@ fn test_cli(cli: &mut CLI) {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut cli = CLI::new();
-    cli.description("Where opts:")
+    cli.description("Where opts are:")
         .opt("n", OptTyp::Num)?
         .description("Number of shown lines")
         .opt("v", OptTyp::None)?
