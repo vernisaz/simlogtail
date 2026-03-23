@@ -22,7 +22,7 @@ const VERSION: &str = env!("VERSION");
 /// * `n` - The number of lines to read from the begining of the file.
 /// * 'flag' - bool flag if skip empty lines in Result
 ///
-/// # Returns Result<Vec<String>, Error>
+/// # Returns `Result<Vec<String>, Error>`
 ///
 /// A `Result` containing a `Vec<String>` of the first `n` lines,
 /// or an `io::Error` if the file cannot be read.
