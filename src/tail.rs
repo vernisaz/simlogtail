@@ -5,6 +5,7 @@
 //! my log file entries contain a timestamp in milliseconds since the epoch. The program converts
 //! the information in a human readable format.
 
+extern crate simcli;
 extern crate simcolor;
 extern crate simtime;
 use simcolor::Colorized;
@@ -16,8 +17,7 @@ use std::{
     path::Path,
 };
 
-mod cli;
-use crate::cli::{CLI, OptTyp, OptVal};
+use crate::simcli::{CLI, OptTyp, OptVal};
 
 const VERSION: &str = env!("VERSION");
 
