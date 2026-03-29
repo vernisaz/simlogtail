@@ -58,14 +58,17 @@ fn main() -> Result<(), Box<dyn Error>> {
         .description("Version")
         .opt("h", OptTyp::None)?
         .opt("c", OptTyp::None)?
-        .description("Do not show empty lines in the out");
+        .description("Do not show and count empty lines in the out");
+    if cli.get_errors().is_some() {
+        eprintln!("{}", "Some unknown options are ignored".yellow())
+    }
     if cli.get_opt("v") == Some(&OptVal::Empty) {
         #[allow(clippy::unit_arg)]
         return Ok(println!("\nVersion {}", VERSION.green()));
     } else if cli.get_opt("h") == Some(&OptVal::Empty) {
         return Err(Box::new(
             format!(
-                "Usage: simtail [opts] <file path>[ ...<file path>]\n{}",
+                "Usage: simhead [opts] <file path>[ ...<file path>]\n{}",
                 cli.get_description().unwrap().bright().blue()
             )
             .default(),

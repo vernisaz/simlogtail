@@ -92,26 +92,6 @@ pub fn read_last_n_lines<P: AsRef<Path>>(
     })
 }
 
-#[cfg(test)]
-fn test_cli(cli: &mut CLI) {
-    match cli.opt("D", OptTyp::InStr) {
-        Ok(ref mut cli) => {
-            cli.description("A definition as name=value");
-        }
-        _ => (),
-    }
-    let _ = cli.opt("c", OptTyp::None).inspect_err(|e| eprintln!("{e}"));
-    let d_o = cli.get_opt("D");
-    if let Some(OptVal::Arr(d_o)) = d_o {
-        for (i, d) in d_o.into_iter().enumerate() {
-            eprintln!("opt[{i}] {}={}", d.0, d.1);
-        }
-    } else {
-        eprintln!("no def found")
-    }
-    let _ = cli.opt("X", OptTyp::Str).inspect_err(|e| eprintln!("{e}"));
-}
-
 fn main() -> Result<(), Box<dyn Error>> {
     let mut cli = CLI::new();
     cli.description("Where opts are:")
@@ -122,8 +102,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         .opt("h", OptTyp::None)?
         .opt("c", OptTyp::None)?
         .description("Do not show empty lines in the out");
-    #[cfg(test)]
-    test_cli(&mut cli);
+    if cli.get_errors().is_some() {
+        eprintln!("{}", "Some unknown options are ignored".yellow())
+    }
     let lns = match cli.get_opt("n") {
         Some(OptVal::Num(n)) => *n as usize,
         _ => 15usize,
