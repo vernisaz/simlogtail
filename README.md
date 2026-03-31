@@ -33,6 +33,8 @@ autosave=yes
 3. Run *rb*
 4. Check out [SimpleColor](https://github.com/vernisaz/simcolor) and build (unless you already did that)
 5. Run *rb*
+6. Check out [SimpleCLI](https://github.com/vernisaz/simcli) and build it, unless you already did it
+7. Run *rb*
 
 ## What to improve
 The current solution to deal with big files can impact the performance. So a prediction
