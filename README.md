@@ -2,7 +2,7 @@
 
 ## Purpose
 I work on different systems where `tail` like command can be not available. Another reason 
-is
+is that
 my log file entries contain a timestamp in milliseconds since the epoch. The program converts
 the information in a human readable format.
 
@@ -35,6 +35,7 @@ autosave=yes
 5. Run *rb*
 6. Check out [SimpleCLI](https://github.com/vernisaz/simcli) and build it, unless you already did it
 7. Run *rb*
+8. Finally run *rb -f bee* here to build _simtail_ and *rb -f bee-head* for _simhead_
 
 ## What to improve
 The current solution to deal with big files can impact the performance. So a prediction
