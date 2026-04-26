@@ -15,7 +15,7 @@ use std::{
     fs::File,
     io::{BufRead, BufReader},
     path::Path,
-    time::{UNIX_EPOCH, SystemTime},
+    time::{SystemTime, UNIX_EPOCH},
 };
 
 use crate::simcli::{CLI, OptTyp, OptVal};
@@ -105,7 +105,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .opt("f", OptTyp::None)?
         .description("For future extension - real time tail monitoring")
         .opt("c", OptTyp::None)?
-        .description("Do not show empty lines in the out");
+        .description("Do not show and count empty lines in the out");
     if cli.get_errors().is_some() {
         eprintln!("{}", "Some unknown options are ignored".yellow())
     }
@@ -115,7 +115,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
     if cli.get_opt("v") == Some(&OptVal::Empty) {
         #[allow(clippy::unit_arg)]
-        return Ok(println!("\nSimple Tail version {}, copyright © {} D. Rogatkin", VERSION.green(), year_now().blue().bright()));
+        return Ok(println!(
+            "\nSimple Tail version {}, copyright © {} D. Rogatkin",
+            VERSION.green(),
+            year_now().blue().bright()
+        ));
     } else if cli.get_opt("h") == Some(&OptVal::Empty) {
         return Err(Box::new(
             format!(
@@ -164,7 +168,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
             }
-            Err(e) => eprintln!("Error reading file {} : {}", arg.clone().red(), e),
+            Err(e) => eprintln!("Error reading file {}: {}", arg.clone().red(), e),
         }
     }
     Ok(())
