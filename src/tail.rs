@@ -13,9 +13,11 @@ use std::{
     env,
     error::Error,
     fs::File,
-    io::{BufRead, BufReader},
+    io::{self, BufRead, BufReader, Seek, SeekFrom},
     path::Path,
-    time::{SystemTime, UNIX_EPOCH},
+    sync::mpsc::{self, Receiver, TryRecvError},
+    thread,
+    time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
 use crate::simcli::{CLI, OptTyp, OptVal};
@@ -103,7 +105,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .opt("h", OptTyp::None)?
         .description("This help screen")
         .opt("f", OptTyp::None)?
-        .description("For future extension - real time tail monitoring")
+        .description("Real time tail monitoring (only list file in the list)")
         .opt("c", OptTyp::None)?
         .description("Do not show and count empty lines in the out");
     if cli.get_errors().is_some() {
@@ -132,6 +134,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         return Err("No file specified".red().into());
     }
     let compact = cli.get_opt("c") == Some(&OptVal::Empty);
+    let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
     for arg in cli.args() {
         match read_last_n_lines(arg, lns, compact) {
             Ok(lines) => {
@@ -139,39 +142,97 @@ fn main() -> Result<(), Box<dyn Error>> {
                     "\nLast {lns} lines (or fewer if not available) of {}:",
                     arg.clone().green()
                 );
-                let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
                 for line in lines {
-                    match line.split_once('[').and_then(|(before, after)| {
-                        after
-                            .split_once(']')
-                            .and_then(|(date, tail)| match date.parse::<i64>() {
-                                Ok(date) => {
-                                    let (y, m, d, h, mm, s, _) = simtime::get_datetime(
-                                        1970,
-                                        (date / 1000i64 + (tz_off as i64) * 60i64) as u64,
-                                    );
-                                    let ms = date % 1000;
-                                    Some(format!(
-                                        "{before} {} {tail}",
-                                        format!("{m}-{d:02}-{y} {h}:{mm:02}:{s:02}.{ms:03}")
-                                            .blue()
-                                            .on()
-                                            .bright()
-                                            .yellow()
-                                    ))
-                                }
-                                _ => None,
-                            })
-                    }) {
-                        Some(line) => println!("{}", line),
-                        _ => println!("{}", line),
-                    }
+                    print_ln(&line, tz_off)
                 }
             }
             Err(e) => eprintln!("Error reading file {}: {}", arg.clone().red(), e),
         }
     }
-    Ok(())
+    if cli.get_opt("f").is_some()
+        && let Some(arg) = cli.args().last()
+    {
+        monitor_file(arg, 0)
+    } else {
+        Ok(())
+    }
+}
+
+fn monitor_file(path: &str, _last_pos: i16) -> Result<(), Box<dyn Error>> {
+    let mut file = File::open(&path)?;
+
+    // Start at the end of the file to only read new data
+    // TODO there is a gap in reading, so use the last size from the actual tail printing: last_pos
+    let mut last_pos = file.seek(SeekFrom::End(0))?;
+    let stdin_channel = spawn_stdin_channel();
+    let mut line = String::new();
+    let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
+    loop {
+        thread::sleep(Duration::from_secs(2)); // Poll interval
+
+        let meta = file.metadata()?;
+        if meta.len() > last_pos {
+            // Move to the last read position
+            file.seek(SeekFrom::Start(last_pos))?;
+            let mut reader = BufReader::new(&mut file);
+            // Read new content
+            while reader.read_line(&mut line)? > 0 {
+                print_ln(&line.trim(), tz_off);
+                line.clear();
+            }
+            // Update last position to the current end
+            last_pos = file.seek(SeekFrom::Current(0))?;
+        }
+        match stdin_channel.try_recv() {
+            Ok(key) => {
+                if key.contains("q") {
+                    break Ok(());
+                }
+            } //println!("Received: {}", key),
+            Err(TryRecvError::Empty) => (), //println!("Channel empty"),
+            Err(TryRecvError::Disconnected) => panic!("Channel disconnected"),
+        }
+    }
+}
+
+fn print_ln(line: &str, tz_off: i16) {
+    match line.split_once('[').and_then(|(before, after)| {
+        after
+            .split_once(']')
+            .and_then(|(date, tail)| match date.parse::<i64>() {
+                Ok(date) => {
+                    let (y, m, d, h, mm, s, _) = simtime::get_datetime(
+                        1970,
+                        (date / 1000i64 + (tz_off as i64) * 60i64) as u64,
+                    );
+                    let ms = date % 1000;
+                    Some(format!(
+                        "{before} {} {tail}",
+                        format!("{m}-{d:02}-{y} {h}:{mm:02}:{s:02}.{ms:03}")
+                            .blue()
+                            .on()
+                            .bright()
+                            .yellow()
+                    ))
+                }
+                _ => None,
+            })
+    }) {
+        Some(line) => println!("{}", line),
+        _ => println!("{}", line),
+    }
+}
+
+fn spawn_stdin_channel() -> Receiver<String> {
+    let (tx, rx) = mpsc::channel::<String>();
+    thread::spawn(move || {
+        loop {
+            let mut buffer = String::new();
+            io::stdin().read_line(&mut buffer).unwrap();
+            let _ = tx.send(buffer);
+        }
+    });
+    rx
 }
 
 #[inline]
