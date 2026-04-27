@@ -73,9 +73,9 @@ pub fn read_last_n_lines<P: AsRef<Path>>(
     path: P,
     n: usize,
     skip_empty: bool,
-) -> Result<Vec<String>, std::io::Error> {
-    let file = File::open(path)?;
-    let reader = BufReader::new(file);
+) -> Result<(Vec<String>, u64), std::io::Error> {
+    let mut file = File::open(path)?;
+    let reader = BufReader::new(&file);
     let mut res = CircularBuffer::with_capacity(n);
     // TODO investigate how seek to the end of the file and then read
     for line in reader.lines() {
@@ -85,13 +85,14 @@ pub fn read_last_n_lines<P: AsRef<Path>>(
         }
         res.push(line);
     }
+    let current = file.seek(SeekFrom::Current(0))?;
     Ok(if res.head == 0 {
-        res.buffer
+        (res.buffer, current)
     } else {
         let mut res2 = Vec::with_capacity(res.buffer.len());
         res2.extend_from_slice(&res.buffer[res.head..]);
         res2.extend_from_slice(&res.buffer[..res.tail]);
-        res2
+        (res2, current)
     })
 }
 
@@ -135,9 +136,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     let compact = cli.get_opt("c") == Some(&OptVal::Empty);
     let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
+    let mut last_current = 0;
     for arg in cli.args() {
         match read_last_n_lines(arg, lns, compact) {
-            Ok(lines) => {
+            Ok((lines, current)) => {
                 println!(
                     "\nLast {lns} lines (or fewer if not available) of {}:",
                     arg.clone().green()
@@ -145,6 +147,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 for line in lines {
                     print_ln(&line, tz_off)
                 }
+                last_current = current
             }
             Err(e) => eprintln!("Error reading file {}: {}", arg.clone().red(), e),
         }
@@ -152,18 +155,22 @@ fn main() -> Result<(), Box<dyn Error>> {
     if cli.get_opt("f").is_some()
         && let Some(arg) = cli.args().last()
     {
-        monitor_file(arg, 0)
+        monitor_file(arg, last_current)
     } else {
         Ok(())
     }
 }
 
-fn monitor_file(path: &str, _last_pos: i16) -> Result<(), Box<dyn Error>> {
+fn monitor_file(path: &str, last_pos: u64) -> Result<(), Box<dyn Error>> {
     let mut file = File::open(&path)?;
 
     // Start at the end of the file to only read new data
     // TODO there is a gap in reading, so use the last size from the actual tail printing: last_pos
-    let mut last_pos = file.seek(SeekFrom::End(0))?;
+    let mut last_pos = if last_pos == 0 {
+        file.seek(SeekFrom::End(0))?
+    } else {
+        last_pos
+    };
     let stdin_channel = spawn_stdin_channel();
     let mut line = String::new();
     let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
