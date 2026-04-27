@@ -25,3 +25,13 @@ fn print_ln(line: &str, tz_off: i16) {
         _ => println!("{}", line),
     }
 }
+
+#[inline]
+pub fn year_now() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs()
+        / 31556952
+        + 1970
+}

@@ -77,12 +77,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             year_now().bright().magenta()
         ));
     } else if cli.get_opt("h") == Some(&OptVal::Empty) {
-        return Err(Box::new(
-            format!(
-                "Usage: simhead [opts] <file path>[ ...<file path>]\n{}",
-                cli.get_description().unwrap().bright().blue()
-            )
-            .default(),
+        return Ok(println!(
+            "Usage: simhead [opts] <file path>[ ...<file path>]\n{}",
+            cli.get_description().unwrap().bright().blue()
         ));
     } else if cli.args().is_empty() {
         return Err("No file specified".red().into());
@@ -108,14 +105,4 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     Ok(())
-}
-
-#[inline]
-pub fn year_now() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs()
-        / 31556952
-        + 1970
 }

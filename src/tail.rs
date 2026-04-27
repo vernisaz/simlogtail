@@ -106,7 +106,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .opt("n", OptTyp::Num)?
         .description("Number of shown lines")
         .opt("v", OptTyp::None)?
-        .description("Version")
+        .description("Version of the product")
         .opt("h", OptTyp::None)?
         .description("This help screen")
         .opt("f", OptTyp::None)?
@@ -129,12 +129,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             year_now().magenta().bright()
         ));
     } else if cli.get_opt("h") == Some(&OptVal::Empty) {
-        return Err(Box::new(
-            format!(
-                "Usage: simtail [opts] <file path>[...<file path>]\n{}",
-                cli.get_description().unwrap().bright().blue()
-            )
-            .default(),
+        return Ok(println!(
+            "Usage: simtail [opts] <file path>[...<file path>]\n{}",
+            cli.get_description().unwrap().bright().blue()
         ));
     } else if cli.args().is_empty() {
         return Err("No file specified".red().into());
@@ -217,14 +214,4 @@ fn spawn_stdin_channel() -> Receiver<String> {
         }
     });
     rx
-}
-
-#[inline]
-pub fn year_now() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs()
-        / 31556952
-        + 1970
 }
