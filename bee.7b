@@ -5,7 +5,7 @@ crate_dir=..${~/~}crates
 doc_dir=..${~/~}docs
 comp opts=[]
 
-version=1.04
+version=1.10
 set_env(VERSION,version)
 
 test file=${main}

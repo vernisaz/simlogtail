@@ -6,7 +6,7 @@ is that
 my log file entries contain a timestamp in milliseconds since the epoch. The program converts
 the information in a human readable format.
 
-There is also `simhead` counterpart of the `simtail`.
+There is also `simhead` a counterpart of the `simtail`.
 
 ## Recommended project settings
 If you use [RDS](https://github.com/vernisaz/rust_dev_studio) for operating to the project,
@@ -37,8 +37,9 @@ autosave=yes
 7. Run *rb*
 8. Finally run *rb -f bee* here to build _simtail_ and *rb -f bee-head* for _simhead_
 
+### Use tips
+When a real time tail monitoring is used, type 'q' to extit.
+
 ## What to improve
 The current solution to deal with big files can impact the performance. So a prediction
 to seek a file position to start reading, can be desirable.
-
-Another improvement can be to keep running the program and read new lines as they get available.
