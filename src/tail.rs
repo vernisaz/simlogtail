@@ -24,6 +24,8 @@ use crate::simcli::{CLI, OptTyp, OptVal};
 
 const VERSION: &str = env!("VERSION");
 
+const NAME: &str = env!("NAME");
+
 struct CircularBuffer<T> {
     buffer: Vec<T>,
     head: usize,
@@ -57,6 +59,8 @@ impl<T> CircularBuffer<T> {
         self.tail = (self.tail + 1) % self.capacity; // Move tail
     }
 }
+
+include!("print_line.rs");
 
 /// Reads a file and returns the last `n` lines as a vector of strings.
 ///
@@ -119,9 +123,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     if cli.get_opt("v") == Some(&OptVal::Empty) {
         #[allow(clippy::unit_arg)]
         return Ok(println!(
-            "\nSimple Tail version {}, copyright © {} D. Rogatkin",
+            "\n{} version {}, Copyright © {} D. Rogatkin",
+            NAME.blue().bright().bold(),
             VERSION.green(),
-            year_now().blue().bright()
+            year_now().magenta().bright()
         ));
     } else if cli.get_opt("h") == Some(&OptVal::Empty) {
         return Err(Box::new(
@@ -199,34 +204,6 @@ fn monitor_file(path: &str, last_pos: u64) -> Result<(), Box<dyn Error>> {
             Err(TryRecvError::Empty) => (), //println!("Channel empty"),
             Err(TryRecvError::Disconnected) => panic!("Channel disconnected"),
         }
-    }
-}
-
-fn print_ln(line: &str, tz_off: i16) {
-    match line.split_once('[').and_then(|(before, after)| {
-        after
-            .split_once(']')
-            .and_then(|(date, tail)| match date.parse::<i64>() {
-                Ok(date) => {
-                    let (y, m, d, h, mm, s, _) = simtime::get_datetime(
-                        1970,
-                        (date / 1000i64 + (tz_off as i64) * 60i64) as u64,
-                    );
-                    let ms = date % 1000;
-                    Some(format!(
-                        "{before} {} {tail}",
-                        format!("{m}-{d:02}-{y} {h}:{mm:02}:{s:02}.{ms:03}")
-                            .blue()
-                            .on()
-                            .bright()
-                            .yellow()
-                    ))
-                }
-                _ => None,
-            })
-    }) {
-        Some(line) => println!("{}", line),
-        _ => println!("{}", line),
     }
 }
 

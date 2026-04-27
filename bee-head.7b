@@ -5,7 +5,8 @@ crate_dir=..${~/~}crates
 doc_dir=..${~/~}docs
 comp opts=[]
 
-version=1.02
+version=1.03
 set_env(VERSION,version)
+set_env(NAME,Sim Head)
 
 include(common);

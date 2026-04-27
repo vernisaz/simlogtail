@@ -15,6 +15,10 @@ use crate::simcli::{CLI, OptTyp, OptVal};
 
 const VERSION: &str = env!("VERSION");
 
+const NAME: &str = env!("NAME");
+
+include!("print_line.rs");
+
 /// Reads a file and returns the first `n` lines as a vector of strings.
 ///
 /// # Arguments
@@ -52,12 +56,13 @@ pub fn read_first_n_lines<P: AsRef<Path>>(
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut cli = CLI::new();
-    cli.description("Where opts:")
+    cli.description("Where opts are:")
         .opt("n", OptTyp::Num)?
         .description("Number of shown lines")
         .opt("v", OptTyp::None)?
-        .description("Version")
+        .description("Version of the product")
         .opt("h", OptTyp::None)?
+        .description("This help screen")
         .opt("c", OptTyp::None)?
         .description("Do not show and count empty lines in the out");
     if cli.get_errors().is_some() {
@@ -66,9 +71,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     if cli.get_opt("v") == Some(&OptVal::Empty) {
         #[allow(clippy::unit_arg)]
         return Ok(println!(
-            "\nSimple Head version {}, copyright © {} D. Rogatkin",
+            "\n{} version {}, Copyright © {} D. Rogatkin",
+            NAME.blue().bright().bold(),
             VERSION.green(),
-            year_now().bright().blue()
+            year_now().bright().magenta()
         ));
     } else if cli.get_opt("h") == Some(&OptVal::Empty) {
         return Err(Box::new(
@@ -86,6 +92,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Some(OptVal::Num(n)) => *n as usize,
         _ => 15usize,
     };
+    let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
     for arg in cli.args() {
         match read_first_n_lines(arg, lns, compact) {
             Ok(lines) => {
@@ -93,33 +100,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                     "\nFirst {lns} lines (or fewer if not available) of {}:",
                     &arg.clone().green()
                 );
-                let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
                 for line in lines {
-                    match line.split_once('[').and_then(|(before, after)| {
-                        after
-                            .split_once(']')
-                            .and_then(|(date, tail)| match date.parse::<i64>() {
-                                Ok(date) => {
-                                    let (y, m, d, h, mm, s, _) = simtime::get_datetime(
-                                        1970,
-                                        (date / 1000i64 + (tz_off as i64) * 60i64) as u64,
-                                    );
-                                    let ms = date % 1000;
-                                    Some(format!(
-                                        "{before} {} {tail}",
-                                        format!("{m}-{d:02}-{y} {h}:{mm:02}:{s:02}.{ms:03}")
-                                            .blue()
-                                            .on()
-                                            .bright()
-                                            .yellow()
-                                    ))
-                                }
-                                _ => None,
-                            })
-                    }) {
-                        Some(line) => println!("{}", line),
-                        _ => println!("{}", line),
-                    }
+                    print_ln(&line, tz_off)
                 }
             }
             Err(e) => eprintln!("Error reading file {}: {}", arg.clone().red(), e),

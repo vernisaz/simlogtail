@@ -5,8 +5,9 @@ crate_dir=..${~/~}crates
 doc_dir=..${~/~}docs
 comp opts=[]
 
-version=1.10
+version=1.11
 set_env(VERSION,version)
+set_env(NAME,Sim Tail)
 
 test file=${main}
 target test :.:Run test {
