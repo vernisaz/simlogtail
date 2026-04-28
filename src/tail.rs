@@ -89,7 +89,7 @@ pub fn read_last_n_lines<P: AsRef<Path>>(
         }
         res.push(line);
     }
-    let current = file.seek(SeekFrom::Current(0))?;
+    let current = file.stream_position()?;
     Ok(if res.head == 0 {
         (res.buffer, current)
     } else {
@@ -157,14 +157,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     if cli.get_opt("f").is_some()
         && let Some(arg) = cli.args().last()
     {
-        monitor_file(arg, last_current)
+        monitor_file(arg, compact, last_current)
     } else {
         Ok(())
     }
 }
 
-fn monitor_file(path: &str, last_pos: u64) -> Result<(), Box<dyn Error>> {
-    let mut file = File::open(&path)?;
+fn monitor_file(path: &str, compact: bool, last_pos: u64) -> Result<(), Box<dyn Error>> {
+    let mut file = File::open(path)?;
 
     // Start at the end of the file to only read new data
     // TODO there is a gap in reading, so use the last size from the actual tail printing: last_pos
@@ -186,11 +186,15 @@ fn monitor_file(path: &str, last_pos: u64) -> Result<(), Box<dyn Error>> {
             let mut reader = BufReader::new(&mut file);
             // Read new content
             while reader.read_line(&mut line)? > 0 {
-                print_ln(&line.trim(), tz_off);
+                let trimmed = line.trim();
+                if compact && trimmed.is_empty() {
+                    continue;
+                }
+                print_ln(trimmed, tz_off);
                 line.clear();
             }
             // Update last position to the current end
-            last_pos = file.seek(SeekFrom::Current(0))?;
+            last_pos = file.stream_position()?;
         }
         match stdin_channel.try_recv() {
             Ok(key) => {
