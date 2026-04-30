@@ -11,7 +11,10 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use crate::simcli::{CLI, OptTyp, OptVal};
+#[cfg(not(target_os = "windows"))]
+use simcli::{CLI, OptTyp, OptVal};
+#[cfg(target_os = "windows")]
+use simcli::{CLI, OptTyp, OptVal, WildCardExpansion};
 
 const VERSION: &str = env!("VERSION");
 
@@ -65,6 +68,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .description("This help screen")
         .opt("c", OptTyp::None)?
         .description("Do not show and count empty lines in the out");
+    #[cfg(target_os = "windows")]
+    cli.process_wildcard(WildCardExpansion::All);
     if cli.get_errors().is_some() {
         eprintln!("{}", "Some unknown options are ignored".yellow())
     }
