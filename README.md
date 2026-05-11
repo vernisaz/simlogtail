@@ -4,7 +4,7 @@
 I work on different systems where `tail` like command can be not available. Another reason 
 is that
 my log file entries contain a timestamp in milliseconds since the epoch. The program converts
-the information in a human readable format.
+the information in a human readable form.
 
 There is also `simhead` a counterpart of the `simtail`.
 
