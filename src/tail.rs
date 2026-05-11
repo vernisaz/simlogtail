@@ -113,7 +113,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .opt("h", OptTyp::None)?
         .description("This help screen")
         .opt("f", OptTyp::None)?
-        .description("Real time tail monitoring (only list file in the list)")
+        .description("Real time tail monitoring (only the last file when more than one specified)")
         .opt("c", OptTyp::None)?
         .description("Do not show and count empty lines in the out");
     #[cfg(target_os = "windows")]
