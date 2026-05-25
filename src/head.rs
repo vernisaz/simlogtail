@@ -28,7 +28,7 @@ include!("print_line.rs");
 ///
 /// * `path` - A reference to the file path.
 /// * `n` - The number of lines to read from the begining of the file.
-/// * 'flag' - bool flag if skip empty lines in Result
+/// * 'flag' - bool flag if skip empty lines in the result
 ///
 /// # Returns `Result<Vec<String>, Error>`
 ///

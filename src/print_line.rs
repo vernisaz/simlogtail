@@ -1,3 +1,6 @@
+/// Prints a string with possible timestamp in it in provided time zone
+///
+/// 
 fn print_ln(line: &str, tz_off: i16) {
     match line.split_once('[').and_then(|(before, after)| {
         after
@@ -33,5 +36,5 @@ pub fn year_now() -> u64 {
         .unwrap_or_default()
         .as_secs()
         / 31556952
-        + 1970
+        + 1970 // since 1970 isn't leap, substract 43,200 from now
 }
