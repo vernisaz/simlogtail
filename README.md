@@ -1,7 +1,7 @@
 # Simple tail viewer for log files
 
 ## Purpose
-I work on different systems where `tail` like command can be not available. Another reason 
+I work on different platforms where `tail` like command can be not available. Another reason 
 is that
 my log file entries contain a timestamp in milliseconds since the epoch. The program converts
 the information in a human readable form.
@@ -26,19 +26,37 @@ format_on_save=yes
 autosave=yes
 ```
 
+## Usage
+
+`Usage: simtail [opts] <file path>[...<file path>]
+Where opts are:
+-c	Do not show and count empty lines in the out
+-f	Real time tail monitoring (only the last file when more than one specified)
+-h	This help screen
+-n	Number of shown lines
+-v	Version of the product`
+
+`Usage: simhead [opts] <file path>[ ...<file path>]
+Where opts are:
+-c	Do not show and count empty lines in the out
+-h	This help screen
+-n	Number of shown lines
+-v	Version of the product`
+
 ## How to build
 
-1. Obtain [RustBee](https://github.com/vernisaz/rust_bee) 
-2. Check out [Simple Time](https://github.com/vernisaz/simtime) and build (unless you  did that already)
-3. Run *rb*
-4. Check out [SimpleColor](https://github.com/vernisaz/simcolor) and build (unless you already did that)
-5. Run *rb*
-6. Check out [SimpleCLI](https://github.com/vernisaz/simcli) and build it, unless you already did it
-7. Run *rb*
-8. Finally run *rb -f bee* here to build _simtail_ and *rb -f bee-head* for _simhead_
+1. Obtain [RustBee](https://github.com/vernisaz/rust_bee)
+2. Checkout [common script](https://github.com/vernisaz/simscript), unless it's done in 1st step
+3. Check out [Simple Time](https://github.com/vernisaz/simtime) and build (unless you  did that already)
+4. Run *rb*
+5. Check out [SimpleColor](https://github.com/vernisaz/simcolor) and build (unless you already did that)
+6. Run *rb*
+7. Check out [SimpleCLI](https://github.com/vernisaz/simcli) and build it, unless you already did it
+8. Run *rb*
+9. Finally run *rb -f bee* here to build _simtail_ and *rb -f bee-head* for _simhead_
 
 ### Use tips
-When a real time tail monitoring is used, type 'q' to extit.
+When a real time tail monitoring is used, type 'q' to exit it.
 
 ## What to improve
 The current solution to deal with big files can impact the performance. So a prediction
