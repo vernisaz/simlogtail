@@ -121,11 +121,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     if cli.get_errors().is_some() {
         eprintln!("{}", "Some unknown options are ignored".yellow())
     }
-    let lns = match cli.get_opt("n") {
+    let lns = match cli.get_opt("n")? {
         Some(OptVal::Num(n)) => *n as usize,
         _ => 15usize,
     };
-    if cli.get_opt("v") == Some(&OptVal::Empty) {
+    if cli.get_opt("v")? == Some(&OptVal::Empty) {
         #[allow(clippy::unit_arg)]
         return Ok(println!(
             "\n{} version {}, Copyright © {} D. Rogatkin",
@@ -133,7 +133,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             VERSION.green(),
             year_now().magenta().bright()
         ));
-    } else if cli.get_opt("h") == Some(&OptVal::Empty) {
+    } else if cli.get_opt("h")? == Some(&OptVal::Empty) {
         return Ok(println!(
             "Usage: simtail [opts] <file path>[...<file path>]\n{}",
             cli.get_description().unwrap().bright().blue()
@@ -141,7 +141,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else if cli.args().is_empty() {
         return Err("No file specified".red().into());
     }
-    let compact = cli.get_opt("c") == Some(&OptVal::Empty);
+    let compact = cli.get_opt("c")? == Some(&OptVal::Empty);
     let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
     let mut last_current = 0;
     for arg in cli.args() {
@@ -159,7 +159,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             Err(e) => eprintln!("Error reading file {}: {}", arg.clone().red(), e),
         }
     }
-    if cli.get_opt("f").is_some()
+    if cli.get_opt("f")?.is_some()
         && let Some(arg) = cli.args().last()
     {
         monitor_file(arg, compact, last_current)

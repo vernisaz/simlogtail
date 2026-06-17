@@ -11,10 +11,10 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-#[cfg(not(target_os = "windows"))]
-use simcli::{CLI, OptTyp, OptVal};
 #[cfg(target_os = "windows")]
-use simcli::{CLI, OptTyp, OptVal, WildCardExpansion};
+use simcli::{OptTyp, OptVal, WildCardExpansion, CLI};
+#[cfg(not(target_os = "windows"))]
+use simcli::{OptTyp, OptVal, CLI};
 
 const VERSION: &str = env!("VERSION");
 
@@ -73,7 +73,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if cli.get_errors().is_some() {
         eprintln!("{}", "Some unknown options are ignored".yellow())
     }
-    if cli.get_opt("v") == Some(&OptVal::Empty) {
+    if cli.get_opt("v")? == Some(&OptVal::Empty) {
         #[allow(clippy::unit_arg)]
         return Ok(println!(
             "\n{} version {}, Copyright © {} D. Rogatkin",
@@ -81,7 +81,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             VERSION.green(),
             year_now().bright().magenta()
         ));
-    } else if cli.get_opt("h") == Some(&OptVal::Empty) {
+    } else if cli.get_opt("h")? == Some(&OptVal::Empty) {
         return Ok(println!(
             "Usage: simhead [opts] <file path>[ ...<file path>]\n{}",
             cli.get_description().unwrap().bright().blue()
@@ -89,8 +89,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else if cli.args().is_empty() {
         return Err("No file specified".red().into());
     }
-    let compact = cli.get_opt("c") == Some(&OptVal::Empty);
-    let lns = match cli.get_opt("n") {
+    let compact = cli.get_opt("c")? == Some(&OptVal::Empty);
+    let lns = match cli.get_opt("n")? {
         Some(OptVal::Num(n)) => *n as usize,
         _ => 15usize,
     };
