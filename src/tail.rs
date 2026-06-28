@@ -203,12 +203,23 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                     last_current = current
                 }
-                Err(e) => eprintln!("Error reading file {}: {}", arg.clone().red(), e),
+                Err(e) => {
+                    if cfg!(windows) && arg.starts_with("-") {
+                        eprintln!(
+                            "Error reading file {}: {}, you may forget that '/' starts an option",
+                            arg.clone().red(),
+                            e
+                        )
+                    } else {
+                        eprintln!("Error reading file {}: {}", arg.clone().red(), e)
+                    }
+                }
             }
         }
     }
     if cli.get_opt("f")?.is_some()
         && let Some(arg) = cli.args().last()
+        && bts == 0
     {
         monitor_file(arg, compact, last_current)
     } else {
