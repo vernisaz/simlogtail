@@ -147,9 +147,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
                 Err(e) => {
-                    if !cfg!(windows) {
-                        eprintln!("Error reading file {}: {}", arg.clone().red(), e)
-                    } else if arg.starts_with("-") {
+                    if cfg!(windows) && arg.starts_with("-") {
                         eprintln!(
                             "Error reading file {}: {}, you may forget that '/' starts an option",
                             arg.clone().red(),
@@ -172,9 +170,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
                 Err(e) => {
-                    if !cfg!(windows) {
-                        eprintln!("Error reading file {}: {}", arg.clone().red(), e)
-                    } else if arg.starts_with("-") {
+                    if cfg!(windows) && arg.starts_with("-") {
                         eprintln!(
                             "Error reading file {}: {}, you may forget that '/' starts an option",
                             arg.clone().red(),
