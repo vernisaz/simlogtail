@@ -1,6 +1,6 @@
 /// Prints a string with possible timestamp in it in provided time zone
 ///
-/// 
+///
 fn print_ln(line: &str, tz_off: i16) {
     match line.split_once('[').and_then(|(before, after)| {
         after
@@ -28,7 +28,29 @@ fn print_ln(line: &str, tz_off: i16) {
         _ => println!("{}", line),
     }
 }
+/// Reads n bytes from the specified position
+///
+///
+pub fn read_n_bytes_from(
+    path: impl AsRef<Path>,
+    num_bytes: usize,
+    offset: u64,
+) -> Result<Vec<u8>, std::io::Error> {
+    let mut file = File::open(&path)?;
+    // Move the cursor to the desired offset
+    file.seek(SeekFrom::Start(offset))?;
 
+    // Prepare a buffer of the desired size
+    let mut buffer = vec![0u8; num_bytes];
+
+    // Read exactly `num_bytes` into the buffer
+    let bytes_read = file.read(&mut buffer)?;
+
+    // If fewer bytes were read (e.g., end of file), truncate the buffer
+    buffer.truncate(bytes_read);
+
+    Ok(buffer)
+}
 #[inline]
 pub fn year_now() -> u64 {
     SystemTime::now()

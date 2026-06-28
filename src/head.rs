@@ -11,10 +11,10 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-#[cfg(target_os = "windows")]
-use simcli::{OptTyp, OptVal, WildCardExpansion, CLI};
 #[cfg(not(target_os = "windows"))]
-use simcli::{OptTyp, OptVal, CLI};
+use simcli::{CLI, OptTyp, OptVal};
+#[cfg(target_os = "windows")]
+use simcli::{CLI, OptTyp, OptVal, WildCardExpansion};
 
 const VERSION: &str = env!("VERSION");
 
@@ -57,26 +57,6 @@ pub fn read_first_n_lines<P: AsRef<Path>>(
     Ok(res)
 }
 
-pub fn read_n_bytes_from(
-    path: impl AsRef<Path>,
-    num_bytes: usize,
-    offset: u64,
-) -> Result<Vec<u8>, std::io::Error> {
-    let mut file = File::open(&path)?;
-    // Move the cursor to the desired offset
-    file.seek(SeekFrom::Start(offset))?;
-
-    // Prepare a buffer of the desired size
-    let mut buffer = vec![0u8; num_bytes];
-
-    // Read exactly `num_bytes` into the buffer
-    let bytes_read = file.read(&mut buffer)?;
-
-    // If fewer bytes were read (e.g., end of file), truncate the buffer
-    buffer.truncate(bytes_read);
-
-    Ok(buffer)
-}
 fn main() -> Result<(), Box<dyn Error>> {
     let mut cli = CLI::new();
     cli.description("Where opts are:")

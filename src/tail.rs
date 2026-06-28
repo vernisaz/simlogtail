@@ -12,8 +12,8 @@ use simcolor::Colorized;
 use std::{
     env,
     error::Error,
-    fs::File,
-    io::{self, BufRead, BufReader, Seek, SeekFrom},
+    fs::{self, File},
+    io::{self, BufRead, BufReader, Read, Seek, SeekFrom},
     path::Path,
     sync::mpsc::{self, Receiver, TryRecvError},
     thread,
@@ -107,24 +107,28 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut cli = CLI::new();
     cli.description("Where opts are:")
         .opt("n", OptTyp::Num)?
+        .alias("-lines")?
         .description("Number of shown lines")
+        .opt("c", OptTyp::Num)?
+        .alias("-bytes")?
+        .description("Number of shown bytes (gets over lines when pecified)")
         .opt("v", OptTyp::None)?
+        .alias("-version")?
         .description("Version of the product")
         .opt("h", OptTyp::None)?
+        .alias("-help")?
         .description("This help screen")
         .opt("f", OptTyp::None)?
+        .alias("-follow")?
         .description("Real time tail monitoring (only the last file when more than one specified)")
-        .opt("c", OptTyp::None)?
+        .opt("z", OptTyp::None)?
+        .alias("-no-empty")?
         .description("Do not show and count empty lines in the out");
     #[cfg(target_os = "windows")]
     cli.process_wildcard(WildCardExpansion::All);
     if cli.get_errors().is_some() {
         eprintln!("{}", "Some unknown options are ignored".yellow())
     }
-    let lns = match cli.get_opt("n")? {
-        Some(OptVal::Num(n)) => *n as usize,
-        _ => 15usize,
-    };
     if cli.get_opt("v")? == Some(&OptVal::Empty) {
         #[allow(clippy::unit_arg)]
         return Ok(println!(
@@ -141,22 +145,66 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else if cli.args().is_empty() {
         return Err("No file specified".red().into());
     }
-    let compact = cli.get_opt("c")? == Some(&OptVal::Empty);
+    let lns = match cli.get_opt("n")? {
+        Some(OptVal::Num(n)) => *n as usize,
+        _ => 15usize,
+    };
+    let bts = match cli.get_opt("c")? {
+        Some(OptVal::Num(n)) => *n as u64,
+        _ => 0u64,
+    };
+    let compact = cli.get_opt("z")? == Some(&OptVal::Empty);
     let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
     let mut last_current = 0;
     for arg in cli.args() {
-        match read_last_n_lines(arg, lns, compact) {
-            Ok((lines, current)) => {
-                println!(
-                    "\nLast {lns} lines (or fewer if not available) of {}:",
-                    arg.clone().green()
-                );
-                for line in lines {
-                    print_ln(&line, tz_off)
+        if bts > 0 {
+            let slice_size = 16;
+            let pos = fs::metadata(arg)?.len().saturating_sub(bts);
+            match read_n_bytes_from(arg, bts as usize, pos) {
+                Ok(content) => {
+                    for (i, chunk) in content.chunks(slice_size).enumerate() {
+                        let hex_string = chunk
+                            .iter()
+                            .map(|byte| format!("{:02X}", byte)) // {:02X} = 2-digit uppercase hex
+                            .collect::<Vec<String>>()
+                            .join(" ");
+                        println!(
+                            "{:08X}: {}  {}",
+                            (i * slice_size) as u64 + pos,
+                            hex_string,
+                            String::from_utf8_lossy(chunk) // chars().map(|c| if c.is_control() {
+                                .replace("\n", "\\n")
+                                .replace("\t", "\\t")
+                                .replace("\r", "\\r")
+                        );
+                    }
                 }
-                last_current = current
+                Err(e) => {
+                    if cfg!(windows) && arg.starts_with("-") {
+                        eprintln!(
+                            "Error reading file {}: {}, you may forget that '/' starts an option",
+                            arg.clone().red(),
+                            e
+                        )
+                    } else {
+                        eprintln!("Error reading file {}: {}", arg.clone().red(), e)
+                    }
+                }
             }
-            Err(e) => eprintln!("Error reading file {}: {}", arg.clone().red(), e),
+        } else {
+            match read_last_n_lines(arg, lns, compact) {
+                Ok((lines, current)) => {
+                    println!(
+                        "\nLast {lns} lines (or fewer if not available) of {}:",
+                        arg.clone().green()
+                    );
+                    for line in lines {
+                        print_ln(&line, tz_off)
+                    }
+                    last_current = current
+                }
+                Err(e) => eprintln!("Error reading file {}: {}", arg.clone().red(), e),
+            }
         }
     }
     if cli.get_opt("f")?.is_some()
