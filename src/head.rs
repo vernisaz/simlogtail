@@ -11,10 +11,10 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-#[cfg(not(target_os = "windows"))]
-use simcli::{CLI, OptTyp, OptVal};
 #[cfg(target_os = "windows")]
-use simcli::{CLI, OptTyp, OptVal, WildCardExpansion};
+use simcli::{OptTyp, OptVal, WildCardExpansion, CLI};
+#[cfg(not(target_os = "windows"))]
+use simcli::{OptTyp, OptVal, CLI};
 
 const VERSION: &str = env!("VERSION");
 
@@ -119,10 +119,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                             "{:06X}: {}  {}",
                             i * slice_size,
                             hex_string,
-                            String::from_utf8_lossy(chunk) // chars().map(|c| if c.is_control() {
-                                .replace("\n", "\\n")
-                                .replace("\t", "\\t")
-                                .replace("\r", "\\r")
+                            String::from_utf8_lossy(chunk)
+                                .chars()
+                                .map(|c| if c.is_control() {
+                                    char::from_u32(0x2e).unwrap()
+                                } else {
+                                    c
+                                })
+                                .collect::<String>()
                         );
                     }
                 }

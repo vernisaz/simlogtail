@@ -172,10 +172,15 @@ fn main() -> Result<(), Box<dyn Error>> {
                             "{:08X}: {}  {}",
                             (i * slice_size) as u64 + pos,
                             hex_string,
-                            String::from_utf8_lossy(chunk) // chars().map(|c| if c.is_control() {
-                                .replace("\n", "\\n")
-                                .replace("\t", "\\t")
-                                .replace("\r", "\\r")
+                            String::from_utf8_lossy(chunk).chars()
+        .map(|c| {
+            if c.is_control() {
+                '.'
+            } else {
+                c
+            }
+        })
+        .collect::<String>()
                         );
                     }
                 }
