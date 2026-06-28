@@ -11,10 +11,10 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-#[cfg(not(target_os = "windows"))]
-use simcli::{CLI, OptTyp, OptVal};
 #[cfg(target_os = "windows")]
-use simcli::{CLI, OptTyp, OptVal, WildCardExpansion};
+use simcli::{OptTyp, OptVal, WildCardExpansion, CLI};
+#[cfg(not(target_os = "windows"))]
+use simcli::{OptTyp, OptVal, CLI};
 
 const VERSION: &str = env!("VERSION");
 
@@ -146,7 +146,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                         );
                     }
                 }
-                Err(e) => eprintln!("Error reading file {}: {}", arg.clone().red(), e),
+                Err(e) => {
+                    if !cfg!(windows) {
+                        eprintln!("Error reading file {}: {}", arg.clone().red(), e)
+                    } else if arg.starts_with("-") {
+                        eprintln!(
+                            "Error reading file {}: {}, you may forget that '/' starts an option",
+                            arg.clone().red(),
+                            e
+                        )
+                    } else {
+                        eprintln!("Error reading file {}: {}", arg.clone().red(), e)
+                    }
+                }
             }
         } else {
             match read_first_n_lines(arg, lns, compact) {
@@ -159,7 +171,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                         print_ln(&line, tz_off)
                     }
                 }
-                Err(e) => eprintln!("Error reading file {}: {}", arg.clone().red(), e),
+                Err(e) => {
+                    if !cfg!(windows) {
+                        eprintln!("Error reading file {}: {}", arg.clone().red(), e)
+                    } else if arg.starts_with("-") {
+                        eprintln!(
+                            "Error reading file {}: {}, you may forget that '/' starts an option",
+                            arg.clone().red(),
+                            e
+                        )
+                    } else {
+                        eprintln!("Error reading file {}: {}", arg.clone().red(), e)
+                    }
+                }
             }
         }
     }
