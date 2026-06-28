@@ -6,15 +6,15 @@ use std::{
     env,
     error::Error,
     fs::File,
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, Read, Seek, SeekFrom},
     path::Path,
     time::{SystemTime, UNIX_EPOCH},
 };
 
-#[cfg(target_os = "windows")]
-use simcli::{OptTyp, OptVal, WildCardExpansion, CLI};
 #[cfg(not(target_os = "windows"))]
-use simcli::{OptTyp, OptVal, CLI};
+use simcli::{CLI, OptTyp, OptVal};
+#[cfg(target_os = "windows")]
+use simcli::{CLI, OptTyp, OptVal, WildCardExpansion};
 
 const VERSION: &str = env!("VERSION");
 
@@ -57,16 +57,41 @@ pub fn read_first_n_lines<P: AsRef<Path>>(
     Ok(res)
 }
 
+pub fn read_n_bytes_from(
+    path: impl AsRef<Path>,
+    num_bytes: usize,
+    offset: u64,
+) -> Result<Vec<u8>, std::io::Error> {
+    let mut file = File::open(&path)?;
+    // Move the cursor to the desired offset
+    file.seek(SeekFrom::Start(offset))?;
+
+    // Prepare a buffer of the desired size
+    let mut buffer = vec![0u8; num_bytes];
+
+    // Read exactly `num_bytes` into the buffer
+    let bytes_read = file.read(&mut buffer)?;
+
+    // If fewer bytes were read (e.g., end of file), truncate the buffer
+    buffer.truncate(bytes_read);
+
+    Ok(buffer)
+}
 fn main() -> Result<(), Box<dyn Error>> {
     let mut cli = CLI::new();
     cli.description("Where opts are:")
         .opt("n", OptTyp::Num)?
+        .alias("-lines")?
         .description("Number of shown lines")
+        .opt("c", OptTyp::Num)?
+        .alias("-bytes")?
+        .description("Number of shown bytes")
         .opt("v", OptTyp::None)?
         .description("Version of the product")
         .opt("h", OptTyp::None)?
         .description("This help screen")
-        .opt("c", OptTyp::None)?
+        .opt("z", OptTyp::None)?
+        .alias("-no-empty")?
         .description("Do not show and count empty lines in the out");
     #[cfg(target_os = "windows")]
     cli.process_wildcard(WildCardExpansion::All);
@@ -89,24 +114,53 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else if cli.args().is_empty() {
         return Err("No file specified".red().into());
     }
-    let compact = cli.get_opt("c")? == Some(&OptVal::Empty);
+    let compact = cli.get_opt("z")? == Some(&OptVal::Empty);
     let lns = match cli.get_opt("n")? {
         Some(OptVal::Num(n)) => *n as usize,
         _ => 15usize,
     };
+    let bts = match cli.get_opt("c")? {
+        Some(OptVal::Num(n)) => *n as usize,
+        _ => 0usize,
+    };
     let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
     for arg in cli.args() {
-        match read_first_n_lines(arg, lns, compact) {
-            Ok(lines) => {
-                println!(
-                    "\nFirst {lns} lines (or fewer if not available) of {}:",
-                    &arg.clone().green()
-                );
-                for line in lines {
-                    print_ln(&line, tz_off)
+        if bts > 0 {
+            let slice_size = 16;
+            match read_n_bytes_from(arg, bts, 0) {
+                Ok(content) => {
+                    for (i, chunk) in content.chunks(slice_size).enumerate() {
+                        let hex_string = chunk
+                            .iter()
+                            .map(|byte| format!("{:02X}", byte)) // {:02X} = 2-digit uppercase hex
+                            .collect::<Vec<String>>()
+                            .join(" ");
+                        println!(
+                            "{:06X}: {}  {}",
+                            i * slice_size,
+                            hex_string,
+                            String::from_utf8_lossy(chunk) // chars().map(|c| if c.is_control() {
+                                .replace("\n", "\\n")
+                                .replace("\t", "\\t")
+                                .replace("\r", "\\r")
+                        );
+                    }
                 }
+                Err(e) => eprintln!("Error reading file {}: {}", arg.clone().red(), e),
             }
-            Err(e) => eprintln!("Error reading file {}: {}", arg.clone().red(), e),
+        } else {
+            match read_first_n_lines(arg, lns, compact) {
+                Ok(lines) => {
+                    println!(
+                        "\nFirst {lns} lines (or fewer if not available) of {}:",
+                        &arg.clone().green()
+                    );
+                    for line in lines {
+                        print_ln(&line, tz_off)
+                    }
+                }
+                Err(e) => eprintln!("Error reading file {}: {}", arg.clone().red(), e),
+            }
         }
     }
     Ok(())
