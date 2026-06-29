@@ -11,10 +11,10 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-#[cfg(target_os = "windows")]
-use simcli::{OptTyp, OptVal, WildCardExpansion, CLI};
 #[cfg(not(target_os = "windows"))]
-use simcli::{OptTyp, OptVal, CLI};
+use simcli::{CLI, OptTyp, OptVal};
+#[cfg(target_os = "windows")]
+use simcli::{CLI, OptTyp, OptVal, WildCardExpansion};
 
 const VERSION: &str = env!("VERSION");
 
@@ -105,6 +105,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
     let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
     for arg in cli.args() {
+        if Path::new(arg).is_dir() {
+            continue;
+        }
         if bts > 0 {
             let slice_size = 16;
             match read_n_bytes_from(arg, bts, 0) {

@@ -157,6 +157,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let (tz_off, _dst) = simtime::get_local_timezone_offset_dst();
     let mut last_current = 0;
     for arg in cli.args() {
+        if Path::new(arg).is_dir() {
+            continue;
+        }
         if bts > 0 {
             let slice_size = 16;
             let pos = fs::metadata(arg)?.len().saturating_sub(bts);
@@ -172,15 +175,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                             "{:08X}: {}  {}",
                             (i * slice_size) as u64 + pos,
                             hex_string,
-                            String::from_utf8_lossy(chunk).chars()
-        .map(|c| {
-            if c.is_control() {
-                '.'
-            } else {
-                c
-            }
-        })
-        .collect::<String>()
+                            String::from_utf8_lossy(chunk)
+                                .chars()
+                                .map(|c| { if c.is_control() { '�' } else { c } })
+                                .collect::<String>()
                         );
                     }
                 }
